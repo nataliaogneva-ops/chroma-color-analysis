@@ -161,7 +161,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
       >
         <button
           onClick={onReset}
-          className="flex items-center gap-1 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-1 text-[13px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="w-4 h-4 -ml-1" />
           Back
@@ -203,7 +203,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
           </div>
 
           {imageLoaded && (
-            <p className="absolute bottom-2 left-0 right-0 text-center text-[13px] tracking-[0.15em] uppercase text-white/60 pointer-events-none">
+            <p className="absolute bottom-2 left-0 right-0 text-center text-[13px] tracking-[0.15em] uppercase text-white/90 pointer-events-none" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
               Tap to move
             </p>
           )}
@@ -224,17 +224,17 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                   <div className="flex items-center gap-3 mt-3">
                     <button
                       onClick={() => copyHex(topMatch.hex)}
-                      className="flex items-center gap-1.5 text-[12px] font-mono text-muted-foreground hover:text-foreground transition-colors"
+                      className="flex items-center gap-1.5 text-[13px] font-mono text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {hexCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {hexCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                       {topMatch.hex.toUpperCase()}
                     </button>
                     {shareSupported && (
                       <button
                         onClick={shareResult}
-                        className="flex items-center gap-1.5 text-[12px] tracking-[0.1em] uppercase text-muted-foreground hover:text-foreground transition-colors"
+                        className="flex items-center gap-1.5 text-[13px] tracking-[0.1em] uppercase text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        <Share2 className="w-3 h-3" />
+                        <Share2 className="w-3.5 h-3.5" />
                         Share
                       </button>
                     )}
@@ -245,17 +245,17 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
 
             {/* Ranked palette matches */}
             <div className="px-5 py-4 border-b border-border">
-              <p className="text-[12px] tracking-[0.2em] uppercase text-muted-foreground mb-3">Seasonal matches</p>
+              <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-3">Seasonal matches</p>
               <div className="flex flex-col gap-3">
                 {sample.matches.map((match, i) => (
                   <div key={match.paletteName} className="flex items-center gap-3">
                     <span className="text-[12px] text-muted-foreground w-3 flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between mb-1">
-                        <span className={`text-xs ${i === 0 ? 'text-foreground font-medium' : 'text-foreground/70'}`}>
+                        <span className={`text-[13px] ${i === 0 ? 'text-foreground font-medium' : 'text-foreground/70'}`}>
                           {match.paletteName}
                         </span>
-                        <span className="text-[12px] font-mono text-muted-foreground ml-2 flex-shrink-0">
+                        <span className="text-[13px] font-mono text-muted-foreground ml-2 flex-shrink-0">
                           {match.confidence}%
                         </span>
                       </div>
@@ -273,8 +273,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
 
             {/* Season description */}
             <div className="px-5 py-4 border-b border-border">
-              <p className="text-[12px] tracking-[0.2em] uppercase text-muted-foreground mb-1.5">About {topMatch.paletteName}</p>
-              <p className="text-sm text-foreground/80 leading-relaxed">
+              <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-1.5">About {topMatch.paletteName}</p>
+              <p className="text-sm text-foreground leading-relaxed">
                 {getSubseasonDescription(topMatch.paletteName)}
               </p>
             </div>
@@ -282,7 +282,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
             {/* Same-season color strip */}
             {seasonPalette && (
               <div className="px-5 pt-4 pb-4">
-                <p className="text-[12px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
+                <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
                   More {topMatch.paletteName} colors
                 </p>
                 <div className="flex gap-1 overflow-x-auto pb-1">

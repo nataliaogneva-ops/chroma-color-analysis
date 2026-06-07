@@ -265,12 +265,12 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
 
       {/* Top controls */}
       <button onClick={stopCamera}
-        className="absolute right-4 p-2 bg-background/90 text-foreground z-20"
+        className="absolute right-4 p-2 bg-white/95 backdrop-blur-sm text-black z-20 shadow-sm"
         style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }} aria-label="Close">
         <X className="w-5 h-5" />
       </button>
       <button onClick={() => fileInputRef.current?.click()}
-        className="absolute left-4 p-2 bg-background/90 text-foreground z-20"
+        className="absolute left-4 p-2 bg-white/95 backdrop-blur-sm text-black z-20 shadow-sm"
         style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }} aria-label="Choose photo">
         <ImageIcon className="w-5 h-5" />
       </button>
@@ -297,14 +297,14 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
         )}
       </div>
 
-      {/* Bottom controls */}
-      <div className="absolute bottom-0 left-0 right-0 px-6 pt-6 flex flex-col items-center gap-3"
+      {/* Bottom controls — gradient scrim ensures readability over any video content */}
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-3 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-6 pt-16"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}>
         <button onClick={capturePhoto} disabled={!isVideoReady}
-          className="w-full flex items-center justify-center py-4 bg-background text-foreground text-xs tracking-[0.2em] uppercase disabled:opacity-50 transition-opacity">
+          className="w-full flex items-center justify-center py-4 bg-white text-black text-xs tracking-[0.2em] uppercase disabled:opacity-50 transition-opacity">
           Capture
         </button>
-        <p className="text-[11px] tracking-[0.12em] uppercase text-white/50 text-center">
+        <p className="text-[12px] tracking-[0.12em] uppercase text-white/85 text-center">
           Hold white label in frame for accurate colour
         </p>
       </div>
