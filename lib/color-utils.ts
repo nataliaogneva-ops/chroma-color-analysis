@@ -352,34 +352,54 @@ export function extractDominantColor(
 }
 
 // Score the input color against every palette, return top N ranked by closest match.
-// For each palette we take the single nearest color (min Delta-E) as that palette's score —
-// this correctly handles colors that appear across multiple palettes with slight variations.
+// Two-factor palette scoring:
+//   1. Proximity score  — power-curve on nearest-color ΔE (threshold 50).
+//      Real palette ΔE values range 1–25 for valid matches, so a threshold of 10
+//      was far too tight (supporting seasons consistently scored 0%).
+//   2. Coverage score   — fraction of palette colors within ΔE≤25 of the scan.
+//      Rewards palettes that own the scanned colour territory, not just those that
+//      happen to contain one nearby token.
+//   Combined 70 / 30 weighting; top-3 results get a minimum floor of 5%.
 export function findTopMatches(hex: string, n = 3): ColorMatch[] {
   const [r, g, b] = hexToRgb(hex)
   const inputLab = rgbToLab(r, g, b)
   const name = getColorName(r, g, b)
 
-  const paletteScores: Array<{ palette: SeasonalPalette; distance: number }> = []
+  const PROXIMITY_THRESHOLD = 50   // ΔE at which proximity score → 0
+  const COVERAGE_RADIUS    = 25    // colours inside this radius count as "present"
+  const PROXIMITY_POWER    = 2     // steeper curve near 0, gentler tail
+  const W_PROXIMITY        = 0.70
+  const W_COVERAGE         = 0.30
+
+  const paletteScores: Array<{ palette: SeasonalPalette; score: number; distance: number }> = []
 
   for (const palette of seasonalPalettes) {
-    let best = Infinity
+    let bestDist = Infinity
+    let closeCount = 0
+
     for (const color of palette.colors) {
       const [pr, pg, pb] = hexToRgb(color)
       const d = deltaE(inputLab, rgbToLab(pr, pg, pb))
-      if (d < best) best = d
+      if (d < bestDist) bestDist = d
+      if (d <= COVERAGE_RADIUS) closeCount++
     }
-    paletteScores.push({ palette, distance: best })
+
+    const proximityScore = Math.pow(Math.max(0, 1 - bestDist / PROXIMITY_THRESHOLD), PROXIMITY_POWER)
+    const coverageScore  = closeCount / palette.colors.length  // 0–1
+
+    const score = proximityScore * W_PROXIMITY + coverageScore * W_COVERAGE
+    paletteScores.push({ palette, score, distance: bestDist })
   }
 
-  paletteScores.sort((a, b) => a.distance - b.distance)
+  paletteScores.sort((a, b) => b.score - a.score)
 
-  return paletteScores.slice(0, n).map(({ palette, distance }) => ({
+  return paletteScores.slice(0, n).map(({ palette, score, distance }) => ({
     hex,
     name,
     paletteName: palette.name,
     season: palette.season,
-    // Match % = 100 − (ΔE / 10 × 100), clamped 0–100. ΔE≥10 → 0%, ΔE=0 → 100%
-    confidence: Math.max(0, Math.round(100 - (distance / 10) * 100)),
+    // Floor at 5% so supporting seasons are never shown as 0%
+    confidence: Math.max(5, Math.round(score * 100)),
   }))
 }
 
