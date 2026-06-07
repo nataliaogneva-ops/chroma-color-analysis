@@ -341,33 +341,23 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
               </p>
             </div>
 
-            {/* Best color match per related palette */}
+            {/* Best color match per related palette — 2×3 grid */}
             {crossPaletteMatches.length > 0 && (
               <div className="px-5 pt-5 pb-5 border-b border-border">
                 <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
                   Closest match per season
                 </p>
-                <div className="flex flex-col gap-3">
-                  {crossPaletteMatches.map((m) => (
-                    <div key={m.paletteName} className="flex items-center gap-3">
-                      {/* Swatch */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  {crossPaletteMatches.slice(0, 6).map((m) => (
+                    <div key={m.paletteName} className="flex items-center gap-2.5">
                       <div
-                        className="w-10 h-10 flex-shrink-0 border border-border/30"
+                        className="w-9 h-9 flex-shrink-0 border border-border/30"
                         style={{ backgroundColor: m.swatchHex }}
                       />
-                      {/* Labels */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] text-foreground leading-tight">{m.swatchName}</p>
-                        <p className="text-[12px] text-muted-foreground mt-0.5">{m.paletteName}</p>
+                      <div className="min-w-0">
+                        <p className="text-[12px] text-foreground leading-tight truncate">{m.swatchName}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{m.paletteName}</p>
                       </div>
-                      {/* Proximity */}
-                      <p className={`text-[12px] font-medium flex-shrink-0 ${
-                        m.proximity === 'Exact match' ? 'text-emerald-500' :
-                        m.proximity === 'Very close'  ? 'text-emerald-400' :
-                        m.proximity === 'Close'       ? 'text-amber-400'   :
-                        m.proximity === 'Similar'     ? 'text-orange-400'  :
-                        'text-muted-foreground'
-                      }`}>{m.proximity}</p>
                     </div>
                   ))}
                 </div>
