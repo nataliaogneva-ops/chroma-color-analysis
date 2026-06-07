@@ -231,6 +231,55 @@ const COLOR_REFERENCE_LAB: Array<[string, [number, number, number]]> = COLOR_REF
   ([hex, name]) => [name, rgbToLab(...hexToRgb(hex))]
 )
 
+// When the nearest anchor is too far away (ΔE > CONFIDENCE_THRESHOLD), build a
+// plain-English description directly from Lab values instead of guessing wrong.
+const CONFIDENCE_THRESHOLD = 14
+
+function describeFromLab(L: number, a: number, b: number): string {
+  const chroma = Math.sqrt(a * a + b * b)
+
+  // Lightness
+  const lightness =
+    L > 85 ? 'pale' :
+    L > 65 ? 'light' :
+    L > 45 ? 'medium' :
+    L > 28 ? 'dark' : 'deep'
+
+  // Saturation / muting
+  const saturation =
+    chroma < 6  ? 'neutral' :
+    chroma < 16 ? 'muted' :
+    chroma < 32 ? 'soft' : 'vivid'
+
+  // Hue from a* (red–green) and b* (yellow–blue) in CIELAB polar coordinates.
+  // Calibrated against known swatches (atan2(b*, a*)):
+  //   red 30–48°  |  orange 48–80°  |  yellow 80–110°  |  yellow-green 110–130°
+  //   green 130–165°  |  teal ≥165° or ≤−155°  |  blue −70 to −155°
+  //   purple −25 to −70°  |  pink 0 to −25°
+  const hueAngle = Math.atan2(b, a) * (180 / Math.PI)  // −180 to +180
+  const hue =
+    chroma < 6 ? '' :                               // neutral — no hue word needed
+    hueAngle >= 165 || hueAngle < -155 ? 'teal' :
+    hueAngle >= 130  ? 'green' :
+    hueAngle >= 110  ? 'yellow-green' :
+    hueAngle >= 80   ? 'yellow' :
+    hueAngle >= 48   ? 'orange' :
+    hueAngle >= 0    ? 'red' :
+    hueAngle >= -25  ? 'pink' :
+    hueAngle >= -70  ? 'purple' :
+    'blue'
+
+  // Combine into readable phrase
+  if (!hue) return `${lightness} grey`
+
+  if (saturation === 'neutral') return `${lightness} ${hue}-grey`
+
+  const parts = [lightness]
+  if (saturation !== 'soft') parts.push(saturation)   // skip 'soft' — it's wordy
+  parts.push(hue)
+  return parts.join(' ')
+}
+
 function getColorName(r: number, g: number, b: number): string {
   const inputLab = rgbToLab(r, g, b)
   let bestName = 'Unknown'
@@ -238,6 +287,10 @@ function getColorName(r: number, g: number, b: number): string {
   for (const [name, lab] of COLOR_REFERENCE_LAB) {
     const d = deltaE(inputLab, lab)
     if (d < bestDist) { bestDist = d; bestName = name }
+  }
+  // If confidence is low, describe from Lab instead of guessing
+  if (bestDist > CONFIDENCE_THRESHOLD) {
+    return describeFromLab(inputLab[0], inputLab[1], inputLab[2])
   }
   return bestName
 }
