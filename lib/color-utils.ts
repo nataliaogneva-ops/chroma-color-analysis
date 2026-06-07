@@ -245,39 +245,38 @@ function describeFromLab(L: number, a: number, b: number): string {
     L > 45 ? 'medium' :
     L > 28 ? 'dark' : 'deep'
 
-  // Saturation / muting
-  const saturation =
-    chroma < 6  ? 'neutral' :
-    chroma < 16 ? 'muted' :
-    chroma < 32 ? 'soft' : 'vivid'
+  // Whether the colour reads as muted — the only saturation modifier worth showing.
+  // "Vivid" is dropped: pale+vivid is contradictory; dark+vivid is implied by context.
+  const isMuted = chroma >= 6 && chroma < 20
 
   // Hue from a* (red–green) and b* (yellow–blue) in CIELAB polar coordinates.
   // Calibrated against known swatches (atan2(b*, a*)):
-  //   red 30–48°  |  orange 48–80°  |  yellow 80–110°  |  yellow-green 110–130°
+  //   red 0–48°  |  orange 48–80°  |  yellow 80–110°  |  yellow-green 110–130°
   //   green 130–165°  |  teal ≥165° or ≤−155°  |  blue −70 to −155°
   //   purple −25 to −70°  |  pink 0 to −25°
   const hueAngle = Math.atan2(b, a) * (180 / Math.PI)  // −180 to +180
   const hue =
     chroma < 6 ? '' :                               // neutral — no hue word needed
-    hueAngle >= 165 || hueAngle < -155 ? 'teal' :
-    hueAngle >= 130  ? 'green' :
-    hueAngle >= 110  ? 'yellow-green' :
-    hueAngle >= 80   ? 'yellow' :
-    hueAngle >= 48   ? 'orange' :
-    hueAngle >= 0    ? 'red' :
-    hueAngle >= -25  ? 'pink' :
-    hueAngle >= -70  ? 'purple' :
-    'blue'
+    hueAngle >= 165 || hueAngle < -155 ? 'Teal' :
+    hueAngle >= 130  ? 'Green' :
+    hueAngle >= 110  ? 'Yellow-Green' :
+    hueAngle >= 80   ? 'Yellow' :
+    hueAngle >= 48   ? 'Orange' :
+    hueAngle >= 0    ? 'Red' :
+    hueAngle >= -25  ? 'Pink' :
+    hueAngle >= -70  ? 'Purple' :
+    'Blue'
 
-  // Combine into readable phrase
-  if (!hue) return `${lightness} grey`
+  // Assemble and capitalise — e.g. "Dark Muted Blue", "Pale Orange", "Medium Grey"
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+  const lightnessWord = capitalize(lightness)
 
-  if (saturation === 'neutral') return `${lightness} ${hue}-grey`
+  if (!hue) return `${lightnessWord} Grey`
+  if (chroma < 6) return `${lightnessWord} ${hue}-Grey`
 
-  const parts = [lightness]
-  if (saturation !== 'soft') parts.push(saturation)   // skip 'soft' — it's wordy
-  parts.push(hue)
-  return parts.join(' ')
+  return isMuted
+    ? `${lightnessWord} Muted ${hue}`
+    : `${lightnessWord} ${hue}`
 }
 
 function getColorName(r: number, g: number, b: number): string {
