@@ -1,743 +1,344 @@
 export type SeasonalPalette = {
   name: string
   season: 'spring' | 'summer' | 'autumn' | 'winter'
-  // 5–6 signature colors shown in the library preview strip
   previewColors: string[]
   colors: string[]
 }
 
 // ─── SPRING ────────────────────────────────────────────────────────────────
-// Warm golden undertones · clear to moderately saturated · yellow-based warmth
 
 export const seasonalPalettes: SeasonalPalette[] = [
   {
-    // Warm · Light · Delicate clarity
-    // Think: champagne, peach, warm pastel mint, ivory, soft coral
     name: 'Light Spring',
     season: 'spring',
-    previewColors: ['#FFE898', '#FFB898', '#F08870', '#A8C888', '#98C8E8', '#D4B080'],
+    previewColors: ['#FFB799', '#FFE299', '#CCFF99', '#70BEEA', '#AE84F4', '#FFEACC'],
     colors: [
-      // Neutrals / bases
-      '#FFF8F0', // warm white
-      '#FFF0DC', // ivory
-      '#FAE6C8', // light cream
-      '#F0D8B0', // warm buff
-      '#E0C090', // sand
-      '#C8A870', // light camel
-      '#B89060', // camel
-      // Peach / blush
-      '#FFE8DC', // pale blush
-      '#FFD0B8', // blush peach
-      '#FFB898', // light peach
-      '#F8A080', // peach coral
-      '#F08870', // soft coral
-      '#FFD0D0', // warm pink blush
-      '#F0B8B8', // light warm rose
-      // Yellows / golden
-      '#FFF8D0', // pale butter
-      '#FFE898', // butter yellow
-      '#FFD860', // warm yellow
-      '#EEC040', // golden yellow
-      '#D8A820', // light gold
-      // Warm greens
-      '#E8F4D8', // pale mint
-      '#C8E0B0', // light spring green
-      '#A8C888', // spring green
-      '#88B068', // meadow green
-      '#98C050', // warm lime
-      // Blues / aquas (warm-leaning sky tones)
-      '#D8F0F8', // pale sky
-      '#B8D8F0', // baby blue
-      '#98C8E8', // soft sky blue
-      '#88B8D8', // light cornflower
-      '#A8DCE0', // pale aqua
-      '#80C8C0', // soft aqua
-      // Warm reds / pinks
-      '#FFB8C0', // warm pink
-      '#F09098', // light warm rose
-      '#E87880', // rose
-      '#FF9070', // warm apricot-red
-      // Apricot / orange
-      '#FFD0A0', // light apricot
-      '#FFBA78', // apricot
-      '#F0A050', // warm apricot
-      '#E89030', // amber
-      // Accent
-      '#C8F0E0', // mint foam
-      '#78D0C0', // turquoise tint
-      '#E0B888', // warm tan accent
+      // Reds
+      '#FF9999', '#F48A84', '#EA7F70', '#E0755E', '#D66E4D', '#CC683D',
+      // Oranges
+      '#FFB799', '#F4AF84', '#EAA970', '#E0A65E', '#D6A44D', '#CCA43D',
+      // Yellows
+      '#FFE299', '#F4E084', '#EADF70', '#DFE05E', '#C7D64D', '#AFCC3D',
+      // Greens
+      '#CCFF99', '#A1F484', '#73EA70', '#5EE07A', '#4DD68C', '#3DCCA1',
+      // Blues
+      '#99FFFF', '#84E0F4', '#70BEEA', '#5E9AE0', '#4D73D6', '#3D4BCC',
+      // Purples
+      '#AD99FF', '#AE84F4', '#B470EA', '#BE5EE0', '#CB4DD6', '#CC3DBD',
+      // Pinks
+      '#FF99F4', '#F484DC', '#EA70C1', '#E05EA4', '#D64D86', '#CC3D68',
+      // Browns
+      '#996E5B', '#996B52', '#996A49', '#996A40', '#996E3D', '#99743D',
+      // Greys
+      '#FFFFFF', '#F4F4F4', '#EAEAEA', '#E0E0E0', '#D6D6D6', '#CCCCCC',
+      // Neutrals
+      '#FFEACC', '#F4E4C3', '#EADDBB', '#E0D6B3', '#D6CFAB', '#CCC7A3',
     ],
   },
   {
-    // Warm · Medium value · Clear warmth
-    // Think: sunflower, coral, turquoise, warm ivory, bright lime, caramel
     name: 'True Spring',
     season: 'spring',
-    previewColors: ['#FFD700', '#FF7F50', '#FF8C30', '#60C850', '#30D0C0', '#A88030'],
+    previewColors: ['#F28C60', '#F2C960', '#A9F260', '#3CA0D8', '#943CD8', '#F2DEC1'],
     colors: [
-      // Neutrals / bases
-      '#FFF5E0', // golden white
-      '#F5E5C0', // warm ivory
-      '#E8D098', // golden cream
-      '#D8B870', // warm beige
-      '#C8A048', // camel
-      '#A88030', // warm brown
-      '#8B6520', // dark camel
-      // Corals / oranges
-      '#FF7F50', // coral
-      '#FF6A38', // warm orange-coral
-      '#F05525', // vivid coral-orange
-      '#FF8C30', // bright orange
-      '#FFB040', // amber orange
-      '#FFC860', // warm amber
-      // Bright warm yellows
-      '#FFD700', // gold
-      '#FFE020', // sunflower
-      '#F5C800', // warm gold
-      '#E8B500', // deep warm yellow
-      // Warm greens
-      '#A8C830', // warm lime
-      '#90B818', // yellow-green
-      '#78A808', // medium lime
-      '#509828', // fresh green
-      '#388018', // medium spring green
-      // Reds (warm)
-      '#FF5030', // warm tomato
-      '#E84020', // vivid warm red
-      '#FF7060', // warm light red
-      // Warm turquoise / teal
-      '#30D0C0', // vivid turquoise
-      '#18B8A8', // clear turquoise
-      '#20C8A0', // warm mint teal
-      '#08A890', // medium turquoise
-      // Peach
-      '#FFD0A8', // peach
-      '#FFBA88', // medium peach
-      '#F0A870', // warm peach
-      // Warm pinks
-      '#FF9898', // warm pink
-      '#F07868', // dusty coral-pink
-      // Greens (additional)
-      '#60C850', // vivid green
-      '#48A838', // medium green
-      // Accent blues (warm)
-      '#78C8F8', // clear sky blue
-      '#50B0F0', // bright sky
-      '#98D8C0', // warm mint
-      '#C8F0D0', // pale green-mint
-      '#F8C090', // light warm orange
+      // Reds
+      '#F26060', '#E5574E', '#D84F3C', '#CB492C', '#BF451E', '#B24211',
+      // Oranges
+      '#F28C60', '#E5884E', '#D8853C', '#CB842C', '#BF841E', '#B28511',
+      // Yellows
+      '#F2C960', '#E5C94E', '#D8CB3C', '#CACB2C', '#AEBF1E', '#92B211',
+      // Greens
+      '#A9F260', '#75E54E', '#3FD83C', '#2CCB4F', '#1EBF68', '#11B282',
+      // Blues
+      '#60F2F2', '#4ECAE5', '#3CA0D8', '#2C76CB', '#1E4BBF', '#1121B2',
+      // Purples
+      '#7D60F2', '#874EE5', '#943CD8', '#A22CCB', '#B21EBF', '#B211A2',
+      // Pinks
+      '#F260E3', '#E54EC4', '#D83CA3', '#CB2C82', '#BF1E62', '#B21142',
+      // Browns
+      '#99583D', '#995E3D', '#99633D', '#99693D', '#996E3D', '#99743D',
+      // Greys
+      '#F2F2F2', '#E5E5E5', '#D8D8D8', '#CBCBCB', '#BFBFBF', '#B2B2B2',
+      // Neutrals
+      '#F2DEC1', '#E5D5B7', '#D8CCAD', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Warm · High chroma · Vivid — bridges Spring brightness with Winter contrast
-    // Think: vivid coral, electric teal, hot pink, bright yellow-green, bold orange
     name: 'Bright Spring',
     season: 'spring',
-    previewColors: ['#FF5733', '#FFD700', '#00C8C0', '#FF5090', '#4090FF', '#9020F0'],
+    previewColors: ['#FF3232', '#FFC532', '#99FF32', '#1CA0EA', '#8F1CEA', '#FFEACC'],
     colors: [
-      // Vivid corals / oranges
-      '#FF5733', // vivid coral-orange
-      '#FF4422', // bright red-orange
-      '#FF6600', // vivid orange
-      '#FF8820', // bright amber-orange
-      '#FFA030', // warm amber
-      '#FFBA00', // vivid amber
-      // Vivid yellows
-      '#FFD700', // vivid gold
-      '#FFEA00', // bright yellow
-      '#F0D000', // vivid warm yellow
-      // Vivid greens (warm-toned)
-      '#80E000', // vivid lime
-      '#60C810', // bright warm green
-      '#40B000', // clear green
-      '#20A830', // vivid medium green
-      // Vivid aquas / teals
-      '#00C8C0', // vivid teal
-      '#00B8D8', // electric cyan
-      '#00D0B0', // vivid mint teal
-      '#20E0C8', // bright turquoise
-      // Vivid pinks / hot pink (warm-leaning)
-      '#FF5090', // hot pink
-      '#FF3880', // vivid rose-pink
-      '#FF6060', // vivid warm pink
-      // Vivid blues (clear)
-      '#2080FF', // vivid cobalt
-      '#4090FF', // bright blue
-      '#60A8FF', // clear sky blue
-      // Vivid purples (warm-tinted)
-      '#9020F0', // vivid purple
-      '#A840E0', // vivid violet
-      '#C060FF', // bright violet
-      // High contrast neutrals (spring wears these differently from winter)
-      '#F8F8F0', // warm near-white
-      '#1A1A10', // warm near-black
-      '#E0E8F0', // icy pale blue
-      '#FFF880', // vivid pale yellow
-      '#FF88B0', // bright blush
-      '#88F0E0', // vivid mint foam
-      '#B0F040', // vivid chartreuse
-      '#FF8060', // vivid salmon
-      '#FFCC50', // bright marigold
-      '#40D8A8', // vivid aquamarine
-      '#FF90D0', // vivid light pink
-      '#70E8A8', // vivid spearmint
-      '#D0F870', // vivid lime-yellow
-      '#88A0FF', // vivid periwinkle
+      // Reds
+      '#FF3232', '#F43327', '#EA341C', '#E03711', '#D63908', '#CC3D00',
+      // Oranges
+      '#FF7032', '#F47627', '#EA7C1C', '#E08311', '#D68B08', '#CC9200',
+      // Yellows
+      '#FFC532', '#F4CE27', '#EAD81C', '#DEE011', '#C0D608', '#A3CC00',
+      // Greens
+      '#99FF32', '#5CF427', '#20EA1C', '#11E03F', '#08D667', '#00CC8E',
+      // Blues
+      '#32FFFF', '#27CFF4', '#1CA0EA', '#1170E0', '#0842D6', '#0014CC',
+      // Purples
+      '#5B32FF', '#7527F4', '#8F1CEA', '#AA11E0', '#C508D6', '#CC00B7',
+      // Pinks
+      '#FF32EA', '#F427C7', '#EA1CA4', '#E01181', '#D6085E', '#CC003D',
+      // Browns
+      '#99583D', '#995E3D', '#99633D', '#99693D', '#996E3D', '#99743D',
+      // Greys
+      '#FFFFFF', '#F4F4F4', '#EAEAEA', '#E0E0E0', '#D6D6D6', '#CCCCCC',
+      // Neutrals
+      '#FFEACC', '#F4E4C3', '#EADDBB', '#E0D6B3', '#D6CFAB', '#CCC7A3',
     ],
   },
 
   // ─── SUMMER ──────────────────────────────────────────────────────────────
-  // Cool blue-pink undertones · soft/muted · rose-based coolness
 
   {
-    // Cool · Light · Soft / watercolor quality
-    // Think: powder blue, lavender, blush, soft mint, pearl, periwinkle
     name: 'Light Summer',
     season: 'summer',
-    previewColors: ['#F8D0E0', '#E0C8F0', '#C0D0F0', '#98A8E0', '#A8D0C8', '#D0D0E8'],
+    previewColors: ['#F2C1C1', '#F2E4C1', '#DAF2C1', '#93BFD8', '#CBC1F2', '#F2DEC1'],
     colors: [
-      // Neutrals / bases
-      '#F8F8FF', // ghost white
-      '#F0F0F8', // lavender white
-      '#E0E0F0', // pale blue-white
-      '#D0D0E8', // pearl grey
-      '#C0C0D8', // cool light grey
-      '#A8A8C0', // silver grey
-      '#8888A8', // medium cool grey
-      // Powder blues / periwinkles
-      '#D8E8F8', // powder blue
-      '#C0D0F0', // pale periwinkle
-      '#A8B8E8', // soft periwinkle
-      '#98A8E0', // periwinkle
-      '#88A0D8', // cornflower light
-      '#7890C8', // light slate blue
-      // Lavenders / lilacs
-      '#F0E0F8', // pale lavender
-      '#E0C8F0', // soft lilac
-      '#D0B8E8', // light lavender
-      '#C0A8D8', // medium lavender
-      '#B098C8', // muted lavender
-      // Blush / soft pinks
-      '#FFE8F0', // pale blush
-      '#F8D0E0', // blush pink
-      '#F0C0D0', // soft rose
-      '#E0A8C0', // light rose
-      '#D098B0', // blush rose
-      // Cool mint / aqua (pale, cool)
-      '#D8F0EC', // pale cool mint
-      '#C0E0D8', // soft aqua
-      '#A8D0C8', // cool sage
-      '#90C0B8', // teal-mint light
-      // Cool pinks / rose
-      '#F8B0C0', // light cool pink
-      '#F0A0B0', // soft cool rose
-      '#E090A0', // cool medium rose
-      // Soft sky (cool)
-      '#C8E0F8', // pale sky blue
-      '#B0CCF0', // light sky
-      '#A0BCE8', // soft azure
-      // Accent
-      '#D8C0D8', // soft mauve
-      '#C8B0C8', // dusty lilac
-      '#E8F8D8', // pale cool green-white
-      '#B8D8D0', // light teal
-      '#F0D0E8', // rose lavender
-      '#DDD0F0', // soft blue-purple
-      '#C8E8F0', // ice blue
+      // Reds
+      '#F2C1C1', '#E5ADA9', '#D89B93', '#CB8C7E', '#BF7F6B', '#B27459',
+      // Oranges
+      '#F2D0C1', '#E5C0A9', '#D8B393', '#CBA97E', '#BFA06B', '#B29959',
+      // Yellows
+      '#F2E4C1', '#E5DAA9', '#D8D293', '#CBCB7E', '#B6BF6B', '#A0B259',
+      // Greens
+      '#DAF2C1', '#B9E5A9', '#94D893', '#7ECB8F', '#6BBF91', '#59B297',
+      // Blues
+      '#C1F2F2', '#A9DAE5', '#93BFD8', '#7EA2CB', '#6B82BF', '#5962B2',
+      // Purples
+      '#CBC1F2', '#C0A9E5', '#BA93D8', '#B77ECB', '#B86BBF', '#B259A9',
+      // Pinks
+      '#F2C1ED', '#E5A9D8', '#D893C1', '#CB7EA8', '#BF6B8E', '#B25974',
+      // Browns
+      '#99837A', '#997F71', '#997C68', '#997A5E', '#997A55', '#997A4C',
+      // Greys
+      '#F2F2F2', '#E5E5E5', '#D8D8D8', '#CBCBCB', '#BFBFBF', '#B2B2B2',
+      // Neutrals
+      '#F2DEC1', '#E5D5B7', '#D8CCAD', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Cool · Medium · Muted — the classic dusty rose / slate blue summer
-    // Think: dusty rose, slate blue, soft plum, cool taupe, muted raspberry
     name: 'True Summer',
     season: 'summer',
-    previewColors: ['#D8A8B0', '#6880A8', '#B87888', '#806898', '#D06880', '#607880'],
+    previewColors: ['#CC8E8E', '#CCBA8E', '#ADCC8E', '#6493AD', '#9B8ECC', '#CCBBA3'],
     colors: [
-      // Neutrals / bases
-      '#E8E8F0', // cool off-white
-      '#D0D0E0', // cool light grey
-      '#B8B8C8', // medium cool grey
-      '#A0A0B8', // slate grey
-      '#888898', // medium slate
-      '#707080', // blue-grey
-      '#585868', // dark slate
-      // Dusty rose / mauves
-      '#D8A8B0', // dusty rose
-      '#C89098', // mauve rose
-      '#B87888', // mauve
-      '#A86878', // deep mauve
-      '#986070', // medium mauve
-      '#886068', // warm mauve
-      // Slate blues / cool blue-grey
-      '#A0B8D0', // light slate blue
-      '#8098B8', // slate blue
-      '#6880A8', // medium slate
-      '#587098', // cool blue
-      '#486080', // steel blue
-      '#385068', // dark slate blue
-      // Soft plums / cool purples
-      '#C8A8C8', // soft plum
-      '#B090B8', // muted plum
-      '#9878A8', // medium plum
-      '#806898', // plum
-      '#6A5888', // deep plum
-      // Muted raspberry / rose
-      '#D06880', // raspberry
-      '#C05870', // medium raspberry
-      '#A84860', // deep raspberry
-      // Soft greens (cool-toned)
-      '#A0B8A8', // cool sage
-      '#8898A0', // blue-sage
-      '#789898', // teal-sage
-      '#607880', // teal grey
-      // Cool blues (medium)
-      '#B0C8E0', // powder blue
-      '#90B0D0', // cool medium blue
-      '#C8B8D0', // lavender grey
-      '#B8A8C8', // muted lilac
-      '#A890B8', // soft medium lavender
-      // Light cool rose accent
-      '#E0C0CC', // blush grey
-      '#F0D0D8', // pale rose
-      '#D8C8D8', // greyed pink
-      '#C0B8C8', // cool greige
+      // Reds
+      '#CC8E8E', '#BC7C78', '#AD6D64', '#9E5F52', '#8E5441', '#7F4933',
+      // Oranges
+      '#CCA18E', '#BC9278', '#AD8664', '#9E7C52', '#8E7241', '#7F6A33',
+      // Yellows
+      '#CCBA8E', '#BCB078', '#ADA664', '#9D9E52', '#868E41', '#707F33',
+      // Greens
+      '#ADCC8E', '#8ABC78', '#66AD64', '#529E62', '#418E65', '#337F68',
+      // Blues
+      '#8ECCCC', '#78B0BC', '#6493AD', '#52759E', '#41578E', '#333A7F',
+      // Purples
+      '#9B8ECC', '#9278BC', '#8D64AD', '#8A529E', '#88418E', '#7F3377',
+      // Pinks
+      '#CC8EC5', '#BC78AD', '#AD6494', '#9E527B', '#8E4162', '#7F3349',
+      // Browns
+      '#99786B', '#997561', '#997358', '#99724F', '#8E6B41', '#7F6033',
+      // Greys
+      '#CCCCCC', '#BCBCBC', '#ADADAD', '#9E9E9E', '#8E8E8E', '#7F7F7F',
+      // Neutrals
+      '#CCBBA3', '#CCBEA3', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Cool-Neutral · Medium-light · Extremely muted — foggy, dusty quality
-    // Think: greyed lavender, dusty mauve, muted sage, greyed teal, cocoa, warm stone
     name: 'Soft Summer',
     season: 'summer',
-    previewColors: ['#C8C0D0', '#A898B0', '#A8B0A0', '#787E88', '#B09898', '#B8A888'],
+    previewColors: ['#B2A0A0', '#B2ADA0', '#A9B2A0', '#738893', '#A4A0B2', '#CCC3B7'],
     colors: [
-      // Neutrals / bases (warm-cool neutral)
-      '#E8E0D8', // warm off-white
-      '#D8D0C8', // warm light grey
-      '#C8C0B8', // neutral greige
-      '#B8B0A8', // medium greige
-      '#A8A098', // dark greige
-      '#989088', // warm grey
-      '#888078', // stone
-      // Muted lavender / dusty purple
-      '#C8C0D0', // greyed lavender
-      '#B8A8C0', // dusty lavender
-      '#A898B0', // muted purple
-      '#9888A0', // dusty mauve-purple
-      '#887890', // muted violet
-      '#786880', // deep dusty violet
-      // Muted rose / dusty mauve
-      '#C8A8A8', // muted rose
-      '#B89898', // dusty rose-grey
-      '#A88888', // greyed rose
-      '#986878', // muted mauve-rose
-      // Muted sage / olive-green
-      '#A8B0A0', // muted sage
-      '#98A090', // grey-sage
-      '#889080', // dusty sage
-      '#788070', // olive-sage
-      '#6A7860', // dark sage
-      // Muted teal / blue-grey
-      '#9090A0', // grey-blue
-      '#808898', // muted blue
-      '#707888', // dusty steel blue
-      '#606878', // greyed teal-blue
-      '#787E88', // dusty teal
-      '#686E78', // dark grey-teal
-      // Muted warm-cool pinks
-      '#C0A8B0', // warm mauve
-      '#B09898', // dusty pink
-      '#A08888', // muted warm rose
-      // Soft blues (muted)
-      '#A8B8C8', // muted sky
-      '#98A8B8', // dusty blue
-      '#8898A8', // muted steel
-      // Earthy warmth (neutral autumn-adjacent)
-      '#B8A888', // warm stone
-      '#A89878', // khaki
-      '#988868', // muted camel
-      '#887858', // greyed brown
-      '#907868', // warm cocoa
-      '#A08870', // dusty tan
+      // Reds
+      '#B2A0A0', '#A38A89', '#937773', '#84665F', '#75564D', '#66493D',
+      // Oranges
+      '#B2A6A0', '#A39389', '#938273', '#84735F', '#75664D', '#665A3D',
+      // Yellows
+      '#B2ADA0', '#A39E89', '#939173', '#84845F', '#71754D', '#5D663D',
+      // Greens
+      '#A9B2A0', '#8FA389', '#749373', '#5F8467', '#4D755F', '#3D6659',
+      // Blues
+      '#A0B2B2', '#899EA3', '#738893', '#5F7084', '#4D5875', '#3D4166',
+      // Purples
+      '#A4A0B2', '#9389A3', '#857393', '#7A5F84', '#724D75', '#663D61',
+      // Pinks
+      '#B2A0B0', '#A3899D', '#937388', '#845F73', '#754D5E', '#663D49',
+      // Browns
+      '#998E89', '#998980', '#938173', '#84715F', '#75624D', '#66553D',
+      // Greys
+      '#B2B2B2', '#A3A3A3', '#939393', '#848484', '#757575', '#666666',
+      // Neutrals
+      '#CCC3B7', '#CCC0AB', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
 
   // ─── AUTUMN ──────────────────────────────────────────────────────────────
-  // Warm golden-orange undertones · earthy · muted to rich
 
   {
-    // Warm · Light–Medium · Very muted / dusty warmth
-    // Think: warm beige, muted terracotta, warm olive, dusty peach, camel, warm stone
     name: 'Soft Autumn',
     season: 'autumn',
-    previewColors: ['#E0B090', '#C89070', '#C8A870', '#909858', '#D8B848', '#A88858'],
+    previewColors: ['#B28E8E', '#B2A88E', '#A0B28E', '#648293', '#958EB2', '#CCBBA3'],
     colors: [
-      // Warm neutrals / bases
-      '#FFF0D8', // warm white
-      '#F0E0C0', // warm cream
-      '#E0C8A0', // light tan
-      '#D0B888', // warm sand
-      '#C0A070', // camel light
-      '#A88858', // camel
-      '#906830', // warm brown light
-      '#7A5020', // medium warm brown
-      // Muted terracotta / rust (soft)
-      '#D8A888', // pale terracotta
-      '#C89070', // soft terracotta
-      '#B87858', // muted rust
-      '#A06840', // dusty brick
-      '#906038', // muted rust-brown
-      // Warm olive / moss greens
-      '#C0C890', // pale warm olive
-      '#A8B070', // soft olive
-      '#909858', // warm olive
-      '#787E40', // dark olive
-      '#686E38', // moss
-      '#585E30', // deep moss
-      // Warm dusty pinks / mauves (warm-tinted)
-      '#E0B8A8', // warm blush
-      '#D0A090', // dusty peach-rose
-      '#C08878', // warm mauve-rose
-      '#B07868', // muted warm rose
-      '#A06858', // dusty brick rose
-      // Dusty peach / apricot
-      '#F0D0B0', // pale warm peach
-      '#E0B890', // dusty peach
-      '#D0A070', // warm apricot
-      '#C09060', // muted amber-apricot
-      // Warm golden / amber (muted)
-      '#D8B848', // muted gold
-      '#C8A030', // warm amber
-      '#B89020', // dusty mustard
-      '#A07818', // dusty gold
-      // Warm sage / green-grey
-      '#B0B898', // warm sage
-      '#A0A888', // greyed warm sage
-      '#909878', // muted warm sage
-      '#808870', // dusty warm sage
-      // Warm taupe / greige
-      '#C8B8A8', // warm taupe
-      '#B8A898', // greige
-      '#A89888', // warm greige
-      '#989080', // dusty taupe
-      '#B89880', // muted caramel
-      '#C8A888', // warm sand accent
+      // Reds
+      '#B28E8E', '#A37B78', '#936A64', '#845B52', '#754E41', '#664233',
+      // Oranges
+      '#B2998E', '#A38978', '#937A64', '#846E52', '#756241', '#665733',
+      // Yellows
+      '#B2A88E', '#A39B78', '#938F64', '#848452', '#6F7541', '#5B6633',
+      // Greens
+      '#A0B28E', '#83A378', '#659364', '#52845D', '#417559', '#336656',
+      // Blues
+      '#8EB2B2', '#789BA3', '#648293', '#526984', '#415075', '#333866',
+      // Purples
+      '#958EB2', '#8878A3', '#7F6493', '#775284', '#714175', '#663360',
+      // Pinks
+      '#B28EAE', '#A37899', '#936483', '#84526D', '#754157', '#663342',
+      // Browns
+      '#99837A', '#997F71', '#937864', '#846A52', '#755D41', '#665133',
+      // Greys
+      '#B2B2B2', '#A3A3A3', '#939393', '#848484', '#757575', '#666666',
+      // Neutrals
+      '#CCBBA3', '#CCBEA3', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Warm · Medium–Deep · Rich and earthy — the quintessential harvest palette
-    // Think: burnt orange, olive, forest green, mustard, tomato red, chocolate, rust
     name: 'True Autumn',
     season: 'autumn',
-    previewColors: ['#E07828', '#D45A18', '#C89810', '#7A8A2F', '#8B4020', '#2A6858'],
+    previewColors: ['#B25959', '#B29959', '#85B259', '#346A89', '#6B59B2', '#CCBBA3'],
     colors: [
-      // Warm neutrals
-      '#F5EAD0', // golden cream
-      '#E8D0A0', // warm ivory
-      '#D8B878', // warm beige
-      '#C0A050', // golden beige
-      '#A88030', // caramel
-      '#8B6820', // warm brown
-      '#6A5018', // deep warm brown
-      // Rust / burnt orange
-      '#D45A18', // rust
-      '#C04810', // burnt rust
-      '#E06020', // vivid rust
-      '#B84008', // dark rust
-      '#D07030', // warm amber-rust
-      '#E88030', // amber
-      // Pumpkin / orange
-      '#E07828', // pumpkin
-      '#D06818', // deep pumpkin
-      '#F09040', // bright pumpkin
-      // Warm greens / olive
-      '#7A8A2F', // olive
-      '#6A7A20', // medium olive
-      '#5A6A18', // dark olive
-      '#8A9A3A', // warm olive
-      '#4A6A20', // forest olive
-      '#608038', // forest green
-      '#487028', // medium forest
-      '#386018', // deep forest
-      // Warm reds / tomato
-      '#B83020', // tomato
-      '#A82810', // deep red
-      '#C84030', // vivid warm red
-      '#982010', // dark warm red
-      // Warm browns / chocolates
-      '#8B4020', // warm brown
-      '#7A3818', // medium brown
-      '#6A2808', // chocolate
-      '#A85020', // medium warm brown
-      // Mustard / gold
-      '#C89810', // mustard
-      '#B88800', // golden mustard
-      '#D8A818', // warm gold
-      '#E8B830', // bright mustard
-      '#F0C040', // sunflower
-      // Deep warm teal (autumn's teal)
-      '#2A6858', // warm teal
-      '#1A5848', // deep teal
-      '#386858', // medium teal
-      '#207060', // forest teal
-      // Accent warm apricot
-      '#E8B878', // warm apricot
-      '#D8A060', // amber apricot
-      '#C8B888', // warm sand
+      // Reds
+      '#B25959', '#9E4A45', '#893E34', '#753325', '#602A19', '#4C210F',
+      // Oranges
+      '#B27459', '#9E6745', '#895C34', '#755125', '#604619', '#4C3B0F',
+      // Yellows
+      '#B29959', '#9E8D45', '#898234', '#747525', '#596019', '#404C0F',
+      // Greens
+      '#85B259', '#5C9E45', '#368934', '#257537', '#19603A', '#0F4C3A',
+      // Blues
+      '#59B2B2', '#458E9E', '#346A89', '#254A75', '#192D60', '#0F154C',
+      // Purples
+      '#6B59B2', '#67459E', '#643489', '#602575', '#5B1960', '#4C0F46',
+      // Pinks
+      '#B259A9', '#9E458A', '#89346C', '#752550', '#601937', '#4C0F21',
+      // Browns
+      '#99634C', '#996243', '#895937', '#75502E', '#604626', '#4C3A1E',
+      // Greys
+      '#B2B2B2', '#9E9E9E', '#898989', '#757575', '#606060', '#4C4C4C',
+      // Neutrals
+      '#CCBBA3', '#CCBEA3', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Warm · Deep · Rich — darkest and most intense autumn
-    // Think: mahogany, deep burgundy (warm), dark forest, deep olive, copper, ochre, aubergine
     name: 'Deep Autumn',
     season: 'autumn',
-    previewColors: ['#7A2028', '#A02810', '#3A5820', '#6A6820', '#5A1850', '#8A5838'],
+    previewColors: ['#7F3333', '#7F6A33', '#597F33', '#1B4760', '#42337F', '#CCBBA3'],
     colors: [
-      // Deep warm neutrals
-      '#3A2010', // darkest brown
-      '#4A2818', // very dark brown
-      '#5A3020', // dark mahogany
-      '#6A3828', // medium mahogany
-      '#7A4830', // mahogany
-      '#8A5838', // warm dark brown
-      '#9A6840', // medium dark brown
-      // Deep burgundy / wine (warm-toned)
-      '#6A1820', // deep burgundy
-      '#7A2028', // dark burgundy
-      '#8A2830', // burgundy
-      '#6A1028', // wine
-      '#782030', // dark wine
-      '#881830', // medium wine-red
-      // Deep forest / hunter green
-      '#1A3810', // deepest forest
-      '#2A4818', // dark forest
-      '#3A5820', // forest green
-      '#4A6828', // medium forest
-      '#2A4820', // hunter green
-      '#305830', // deep forest-teal
-      // Deep olive
-      '#4A4810', // very dark olive
-      '#5A5818', // dark olive
-      '#6A6820', // deep olive
-      '#787030', // olive
-      '#686028', // dark golden olive
-      // Deep rust / copper
-      '#901808', // deep rust
-      '#A02810', // dark rust
-      '#B03818', // rust
-      '#A85020', // copper-rust
-      '#C05810', // vivid deep rust
-      // Ochre / dark mustard
-      '#806000', // dark ochre
-      '#906808', // ochre
-      '#A07808', // dark mustard
-      '#704800', // deep amber-brown
-      '#885800', // brown-gold
-      // Aubergine / eggplant
-      '#3A0830', // deepest aubergine
-      '#4A1040', // dark aubergine
-      '#5A1850', // aubergine
-      '#4A1038', // dark plum
-      '#6A2860', // medium aubergine
-      // Deep teal
-      '#0A2828', // deepest teal
-      '#183838', // dark teal
-      '#284848', // deep teal
-      '#1A4038', // forest teal
-      // Dark warm accents
-      '#5A3008', // dark caramel
-      '#7A4810', // copper-brown
-      '#901028', // crimson-burgundy
+      // Reds
+      '#7F3333', '#702A26', '#60231B', '#511D11', '#42170A', '#331205',
+      // Oranges
+      '#7F4933', '#704226', '#603B1B', '#513511', '#422E0A', '#332605',
+      // Yellows
+      '#7F6A33', '#706226', '#605A1B', '#515111', '#3C420A', '#293305',
+      // Greens
+      '#597F33', '#397026', '#1C601B', '#11511F', '#0A4224', '#053325',
+      // Blues
+      '#337F7F', '#266270', '#1B4760', '#112F51', '#0A1A42', '#050933',
+      // Purples
+      '#42337F', '#422670', '#421B60', '#411151', '#3D0A42', '#33052E',
+      // Pinks
+      '#7F3377', '#70265F', '#601B49', '#511134', '#420A21', '#330512',
+      // Browns
+      '#7F4933', '#70452C', '#603F26', '#513820', '#42301A', '#332614',
+      // Greys
+      '#7F7F7F', '#707070', '#606060', '#515151', '#424242', '#333333',
+      // Neutrals
+      '#CCBBA3', '#CCBEA3', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
 
   // ─── WINTER ──────────────────────────────────────────────────────────────
-  // Cool blue-pink undertones · clear to rich · high contrast capability
 
   {
-    // Cool · Very high chroma · Extreme contrast — the most vivid of all types
-    // Think: electric blue, vivid fuchsia, hot coral, true red, vivid teal, bright emerald
     name: 'Bright Winter',
     season: 'winter',
-    previewColors: ['#0040FF', '#FF00B0', '#E00020', '#00C8C0', '#00A860', '#7010FF'],
+    previewColors: ['#FF1919', '#FFBE19', '#8CFF19', '#0C8DD6', '#4719FF', '#FF19E8'],
     colors: [
-      // Pure contrast anchors
-      '#000000', // true black
-      '#FFFFFF', // true white
-      '#F0F8FF', // icy white
-      '#E8F0FF', // cool near-white
-      '#181828', // deep cool near-black
-      // Electric blues
-      '#0040FF', // electric blue
-      '#0060FF', // vivid royal blue
-      '#1070E8', // bright cobalt
-      '#2080FF', // vivid blue
-      '#0050D8', // deep electric blue
-      // Vivid fuchsia / magenta
-      '#FF00B0', // vivid fuchsia
-      '#F000A0', // hot fuchsia
-      '#E00090', // vivid magenta
-      '#FF30C0', // bright magenta
-      '#D80080', // deep fuchsia
-      // True red (cool)
-      '#E00020', // true cool red
-      '#D00010', // vivid crimson
-      '#FF0028', // bright red
-      '#C80018', // cool deep red
-      // Vivid teal / electric cyan
-      '#00C0C8', // vivid teal
-      '#00B0D8', // electric cyan-teal
-      '#00A8C0', // vivid aqua
-      '#00D8D0', // bright turquoise
-      '#00C8B0', // electric turquoise
-      // Vivid emerald / bright green (cool)
-      '#00A860', // vivid emerald
-      '#00C070', // bright emerald
-      '#00B058', // electric emerald
-      '#10A840', // vivid green
-      // Electric violet / purple
-      '#7010FF', // electric violet
-      '#8000F0', // vivid purple
-      '#9020E8', // bright violet
-      '#A030F8', // vivid orchid
-      // High-impact accents
-      '#FF5500', // vivid orange-red (warm-winter accent)
-      '#FFD800', // vivid cool yellow
-      '#FF80C0', // vivid blush
-      '#80F0FF', // vivid ice blue
-      '#B040FF', // vivid lavender-purple
-      '#40F8A0', // vivid aqua-green
-      '#FF4080', // vivid hot pink-red
-      '#00A0FF', // electric sky blue
+      // Reds
+      '#FF1919', '#EA1F12', '#D6250C', '#C12907', '#AD2C03', '#992D00',
+      // Oranges
+      '#FF5E19', '#EA6512', '#D66B0C', '#C16E07', '#AD6F03', '#996E00',
+      // Yellows
+      '#FFBE19', '#EAC212', '#D6C40C', '#C0C107', '#9BAD03', '#7A9900',
+      // Greens
+      '#8CFF19', '#4AEA12', '#10D60C', '#07C130', '#03AD51', '#00996B',
+      // Blues
+      '#19FFFF', '#12C3EA', '#0C8DD6', '#075DC1', '#0333AD', '#000F99',
+      // Purples
+      '#4719FF', '#6412EA', '#7D0CD6', '#9107C1', '#9F03AD', '#990089',
+      // Pinks
+      '#FF19E8', '#EA12BB', '#D60C91', '#C1076C', '#AD034A', '#99002D',
+      // Browns
+      '#99583D', '#995E3D', '#99633D', '#99693D', '#996E3D', '#99743D',
+      // Greys
+      '#FFFFFF', '#EAEAEA', '#D6D6D6', '#C1C1C1', '#ADADAD', '#999999',
+      // Neutrals
+      '#FFEACC', '#EADABB', '#D6CAAB', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Cool · Clear · Medium–Deep — pure cool jewel tones with black/white anchors
-    // Think: true black, true white, cobalt, crimson, emerald, fuchsia, navy, sapphire
     name: 'True Winter',
     season: 'winter',
-    previewColors: ['#CC0020', '#0030A0', '#007840', '#CC0090', '#E8F0FF', '#000000'],
+    previewColors: ['#CC2828', '#CC9E28', '#7ACC28', '#126899', '#4928CC', '#CC28BB'],
     colors: [
-      // Core contrast anchors
-      '#000000', // true black
-      '#FFFFFF', // true white
-      '#101010', // deep near-black
-      '#F5F5FA', // icy cool white
-      '#EBEBF5', // cool off-white
-      // Icy light tones
-      '#E0ECFF', // icy blue
-      '#D8E8FF', // ice blue
-      '#E0D8FF', // icy lavender
-      '#D8E8F8', // cool ice
-      // Cool greys / silver
-      '#C8C8D8', // light cool grey
-      '#A8A8C0', // silver grey
-      '#8888A8', // medium grey-blue
-      '#606080', // dark cool grey
-      '#404058', // deep charcoal blue
-      // True red / crimson
-      '#CC0020', // true red
-      '#BB0010', // crimson
-      '#DD0028', // vivid cool red
-      '#AA0018', // deep crimson
-      // Royal blue / cobalt / navy
-      '#0030A0', // royal blue
-      '#0020B0', // deep cobalt
-      '#1040C0', // cobalt
-      '#002090', // navy blue
-      '#001870', // deep navy
-      // Fuchsia / cool magenta
-      '#CC0090', // fuchsia
-      '#BB0080', // deep fuchsia
-      '#AA0070', // cool magenta
-      '#D800A0', // vivid fuchsia
-      // Emerald green (cool)
-      '#007840', // emerald
-      '#008848', // medium emerald
-      '#006030', // deep emerald
-      '#009058', // vivid emerald
-      // Royal purple
-      '#600090', // royal purple
-      '#500080', // deep purple
-      '#700098', // medium purple
-      '#800080', // magenta-purple
-      // Teal / cool teal
-      '#007878', // classic teal
-      '#006868', // deep teal
-      '#008080', // teal
-      // Sapphire / deep blue
-      '#007BC0', // sapphire
-      '#006BA8', // deep sapphire
-      '#0090C8', // clear sapphire
-      // Accent
-      '#CC0040', // ruby
-      '#BB0030', // deep ruby
-      '#5000A0', // indigo
-      '#400090', // deep indigo
+      // Reds
+      '#CC2828', '#B2251C', '#992212', '#7F1F0A', '#661B04', '#4C1600',
+      // Oranges
+      '#CC5928', '#B2561C', '#995112', '#7F4A0A', '#664204', '#4C3700',
+      // Yellows
+      '#CC9E28', '#B2961C', '#998D12', '#7E7F0A', '#5B6604', '#3D4C00',
+      // Greens
+      '#7ACC28', '#43B21C', '#159912', '#0A7F24', '#046631', '#004C35',
+      // Blues
+      '#28CCCC', '#1C97B2', '#126899', '#0A407F', '#041F66', '#00074C',
+      // Purples
+      '#4928CC', '#551CB2', '#5D1299', '#610A7F', '#5E0466', '#4C0044',
+      // Pinks
+      '#CC28BB', '#B21C91', '#99126B', '#7F0A49', '#66042D', '#4C0016',
+      // Browns
+      '#99583D', '#995E3D', '#99633D', '#7F5733', '#664928', '#4C3A1E',
+      // Greys
+      '#CCCCCC', '#B2B2B2', '#999999', '#7F7F7F', '#666666', '#4C4C4C',
+      // Neutrals
+      '#CCBBA3', '#CCBEA3', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
   {
-    // Cool · Deep · Rich jewel tones — dramatic darkness
-    // Think: midnight navy, deep burgundy, forest green, plum, charcoal, dark teal, wine
     name: 'Deep Winter',
     season: 'winter',
-    previewColors: ['#880020', '#000080', '#183828', '#580068', '#005058', '#303040'],
+    previewColors: ['#661E1E', '#66521E', '#42661E', '#0C3247', '#2C1E66', '#661E5E'],
     colors: [
-      // Deep dark neutrals
-      '#000000', // true black
-      '#0A0A10', // blue-black
-      '#181828', // midnight
-      '#202030', // dark charcoal
-      '#303040', // deep charcoal
-      '#404050', // charcoal
-      '#505060', // medium dark grey
-      // Deep navy / midnight blue
-      '#000050', // midnight
-      '#000068', // deepest navy
-      '#000080', // dark navy
-      '#0A0880', // dark blue
-      '#101890', // deep navy blue
-      '#1A2890', // navy
-      '#0A0070', // ultra navy
-      // Deep burgundy / wine (cool)
-      '#700010', // deepest burgundy
-      '#800018', // deep burgundy
-      '#880020', // burgundy
-      '#780028', // deep wine
-      '#680018', // wine
-      '#900020', // vivid deep burgundy
-      // Deep forest / hunter green (cool)
-      '#082818', // deepest forest
-      '#103020', // deep hunter
-      '#183828', // hunter green
-      '#204030', // forest green
-      '#284838', // deep forest
-      '#105028', // cool forest green
-      // Deep plum / aubergine (cool)
-      '#380048', // deepest plum
-      '#480058', // deep plum
-      '#580068', // dark plum
-      '#480060', // deep violet-plum
-      '#601870', // plum
-      '#5A0868', // rich plum
-      // Deep teal (cool)
-      '#003038', // deepest teal
-      '#004048', // deep teal
-      '#005058', // dark teal
-      '#004840', // hunter teal
-      '#006050', // forest teal
-      // Dark rose / raspberry (cool)
-      '#800038', // dark raspberry
-      '#700030', // deep raspberry
-      '#900040', // vivid dark rose
-      '#780030', // wine-rose
-      // Dark emerald / pine
-      '#004030', // pine green
-      '#003828', // dark pine
-      '#005038', // deep emerald
-      // Deep fuchsia / dark magenta
-      '#880060', // dark fuchsia
-      '#780050', // deep magenta
-      '#900058', // vivid dark fuchsia
+      // Reds
+      '#661E1E', '#561814', '#47130C', '#380F06', '#280B02', '#190700',
+      // Oranges
+      '#66341E', '#562E14', '#47280C', '#382106', '#281A02', '#191200',
+      // Yellows
+      '#66521E', '#564A14', '#47420C', '#373806', '#242802', '#141900',
+      // Greens
+      '#42661E', '#255614', '#0E470C', '#063811', '#022814', '#001911',
+      // Blues
+      '#1E6666', '#144A56', '#0C3247', '#061D38', '#020D28', '#000219',
+      // Purples
+      '#2C1E66', '#2D1456', '#2D0C47', '#2B0638', '#250228', '#190016',
+      // Pinks
+      '#661E5E', '#561448', '#470C33', '#380621', '#280212', '#190007',
+      // Browns
+      '#663B28', '#563522', '#472E1C', '#382616', '#281D10', '#19130A',
+      // Greys
+      '#666666', '#565656', '#474747', '#383838', '#282828', '#191919',
+      // Neutrals
+      '#CCBBA3', '#CCBEA3', '#CCC0A3', '#CCC3A3', '#CCC5A3', '#CCC7A3',
     ],
   },
 ]
