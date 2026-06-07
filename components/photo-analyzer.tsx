@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronDown, Copy, Check, Share2, ScanLine } from "lucide-react"
-import { findTopMatches, rgbToHex, extractDominantColor, describeSwatchVsScanned, findBestColorPerPalette, type ColorMatch, type SwatchInfo, type PaletteColorMatch } from "@/lib/color-utils"
+import { findTopMatches, rgbToHex, extractDominantColor, describeSwatchVsScanned, type ColorMatch, type SwatchInfo } from "@/lib/color-utils"
 import { getSubseasonDescription, getPaletteByName } from "@/lib/seasonal-palettes"
 import { getSegmentationMask, filterPixelsByMask } from "@/lib/segmentation"
 
@@ -207,7 +207,6 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
   }, [])
 
   const topMatch = sample?.matches[0]
-  const crossPaletteMatches: PaletteColorMatch[] = sample ? findBestColorPerPalette(sample.scannedHex, 6) : []
 
   const shareResult = useCallback(async () => {
     if (!topMatch) return
@@ -344,19 +343,19 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
               </div>
             </div>
 
-            {/* Accordions — one per seasonal match (top 3) */}
-            {sample.matches.map((match, idx) => {
-              const palette = getPaletteByName(match.paletteName)
+            {/* About top season — accordion */}
+            {topMatch && (() => {
+              const palette = getPaletteByName(topMatch.paletteName)
               if (!palette) return null
-              const isOpen = accordionsOpen[idx]
+              const isOpen = accordionsOpen[0]
               return (
-                <div key={match.paletteName} className="border-b border-border">
+                <div className="border-b border-border">
                   <button
-                    onClick={() => toggleAccordion(idx)}
+                    onClick={() => toggleAccordion(0)}
                     className="w-full flex items-center justify-between px-5 py-4 focus:outline-none"
                   >
                     <span className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground">
-                      About {match.paletteName}
+                      About {topMatch.paletteName}
                     </span>
                     <ChevronDown
                       className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -366,16 +365,16 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                   {isOpen && (
                     <div className="px-5 pb-5">
                       <p className="text-sm text-foreground leading-relaxed mb-5">
-                        {getSubseasonDescription(match.paletteName)}
+                        {getSubseasonDescription(topMatch.paletteName)}
                       </p>
 
                       <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
-                        More {match.paletteName} colors
+                        More {topMatch.paletteName} colors
                       </p>
 
                       <div className="flex gap-1.5 overflow-x-auto py-[3px] -my-[3px] px-[3px] -mx-[3px]">
                         {palette.colors.map((c, i) => {
-                          const isSelected = selectedSwatchIdx === idx && selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
+                          const isSelected = selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
                           const de = sample ? describeSwatchVsScanned(c, sample.scannedHex).deltaE : 999
                           const harmonyTier = de <= 6 ? 'strong' : de <= 14 ? 'soft' : 'none'
                           return (
@@ -385,8 +384,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                                 if (isSelected) {
                                   setSelectedSwatch(null); setSelectedSwatchIdx(null)
                                 } else {
-                                  setSelectedSwatch(describeSwatchVsScanned(c, sample?.scannedHex ?? match.hex))
-                                  setSelectedSwatchIdx(idx)
+                                  setSelectedSwatch(describeSwatchVsScanned(c, sample?.scannedHex ?? topMatch.hex))
+                                  setSelectedSwatchIdx(0)
                                 }
                               }}
                               className={`w-11 h-11 flex-shrink-0 focus:outline-none transition-shadow duration-150 ${
@@ -405,7 +404,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                         })}
                       </div>
 
-                      {selectedSwatchIdx === idx && selectedSwatch && (
+                      {selectedSwatch && (
                         <div className="mt-3 flex items-center gap-3 p-3 border border-border bg-secondary/40">
                           <div
                             className="w-10 h-10 flex-shrink-0 border border-border/40"
@@ -430,30 +429,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                   )}
                 </div>
               )
-            })}
-
-            {/* Best color match per related palette — 2×3 grid */}
-            {crossPaletteMatches.length > 0 && (
-              <div className="px-5 pt-5 pb-5 border-b border-border">
-                <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
-                  Closest match per season
-                </p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                  {crossPaletteMatches.slice(0, 6).map((m) => (
-                    <div key={m.paletteName} className="flex items-center gap-2.5">
-                      <div
-                        className="w-9 h-9 flex-shrink-0 border border-border/30"
-                        style={{ backgroundColor: m.swatchHex }}
-                      />
-                      <div className="min-w-0">
-                        <p className="text-[12px] text-foreground leading-tight truncate">{m.swatchName}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{m.paletteName}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            })()}
 
             {/* Scan again */}
             <div className="px-5 pt-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}>
