@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import Image from "next/image"
 import { ChevronLeft, Copy, Check, Share2, ScanLine } from "lucide-react"
-import { findTopMatches, rgbToHex, extractDominantColor, describeSwatchVsScanned, type ColorMatch, type SwatchInfo } from "@/lib/color-utils"
+import { findTopMatches, rgbToHex, extractDominantColor, describeSwatchVsScanned, findBestColorPerPalette, type ColorMatch, type SwatchInfo, type PaletteColorMatch } from "@/lib/color-utils"
 import { getSubseasonDescription, getPaletteByName } from "@/lib/seasonal-palettes"
 import { getSegmentationMask, filterPixelsByMask } from "@/lib/segmentation"
 
@@ -196,6 +196,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
 
   const topMatch = sample?.matches[0]
   const seasonPalette = topMatch ? getPaletteByName(topMatch.paletteName) : null
+  const crossPaletteMatches: PaletteColorMatch[] = sample ? findBestColorPerPalette(sample.scannedHex, 6) : []
 
   const shareResult = useCallback(async () => {
     if (!topMatch) return
@@ -339,6 +340,39 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                 {getSubseasonDescription(topMatch.paletteName)}
               </p>
             </div>
+
+            {/* Best color match per related palette */}
+            {crossPaletteMatches.length > 0 && (
+              <div className="px-5 pt-5 pb-5 border-b border-border">
+                <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
+                  Closest match per season
+                </p>
+                <div className="flex flex-col gap-3">
+                  {crossPaletteMatches.map((m) => (
+                    <div key={m.paletteName} className="flex items-center gap-3">
+                      {/* Swatch */}
+                      <div
+                        className="w-10 h-10 flex-shrink-0 border border-border/30"
+                        style={{ backgroundColor: m.swatchHex }}
+                      />
+                      {/* Labels */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] text-foreground leading-tight">{m.swatchName}</p>
+                        <p className="text-[12px] text-muted-foreground mt-0.5">{m.paletteName}</p>
+                      </div>
+                      {/* Proximity */}
+                      <p className={`text-[12px] font-medium flex-shrink-0 ${
+                        m.proximity === 'Exact match' ? 'text-emerald-500' :
+                        m.proximity === 'Very close'  ? 'text-emerald-400' :
+                        m.proximity === 'Close'       ? 'text-amber-400'   :
+                        m.proximity === 'Similar'     ? 'text-orange-400'  :
+                        'text-muted-foreground'
+                      }`}>{m.proximity}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Same-season color strip */}
             {seasonPalette && (

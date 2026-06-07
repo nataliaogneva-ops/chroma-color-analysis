@@ -426,3 +426,50 @@ export function describeSwatchVsScanned(swatchHex: string, scannedHex: string): 
     de < 28 ? 'Similar'     : 'Different'
   return { hex: swatchHex, name, deltaE: Math.round(de), proximity }
 }
+
+export interface PaletteColorMatch {
+  /** The specific palette swatch hex closest to the scanned color */
+  swatchHex: string
+  /** Human-readable name of that swatch */
+  swatchName: string
+  paletteName: string
+  season: SeasonalPalette['season']
+  deltaE: number
+  proximity: SwatchInfo['proximity']
+}
+
+/**
+ * For each seasonal palette, find the single closest swatch to the scanned
+ * garment color. Returns results sorted by proximity, capped at `n` palettes.
+ * Useful for showing "the best color match in each related season."
+ */
+export function findBestColorPerPalette(scannedHex: string, n = 6): PaletteColorMatch[] {
+  const inputLab = rgbToLab(...hexToRgb(scannedHex))
+
+  const results = seasonalPalettes.map(palette => {
+    let bestHex = palette.colors[0]
+    let bestDist = Infinity
+    for (const color of palette.colors) {
+      const d = deltaE(inputLab, rgbToLab(...hexToRgb(color)))
+      if (d < bestDist) { bestDist = d; bestHex = color }
+    }
+    const [r, g, b] = hexToRgb(bestHex)
+    const de = Math.round(bestDist)
+    const proximity: SwatchInfo['proximity'] =
+      de < 3  ? 'Exact match' :
+      de < 8  ? 'Very close'  :
+      de < 16 ? 'Close'       :
+      de < 28 ? 'Similar'     : 'Different'
+    return {
+      swatchHex: bestHex,
+      swatchName: getColorName(r, g, b),
+      paletteName: palette.name,
+      season: palette.season,
+      deltaE: de,
+      proximity,
+    }
+  })
+
+  results.sort((a, b) => a.deltaE - b.deltaE)
+  return results.slice(0, n)
+}
