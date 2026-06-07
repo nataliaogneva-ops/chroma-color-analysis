@@ -201,6 +201,7 @@ const COLOR_REFERENCE: Array<[string, string]> = [
   ['#4080C0', 'Blue'],
   ['#1860A8', 'Cobalt Blue'],
   ['#103880', 'Navy'],
+  ['#333648', 'Dark Navy'],      // L≈23 a≈3 b≈-12: muted dark blue-grey, distinct from saturated navy
   ['#081840', 'Midnight Blue'],
   ['#8090B0', 'Steel Blue'],
   ['#9090C0', 'Slate Blue'],
