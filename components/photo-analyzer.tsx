@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import Image from "next/image"
-import { ChevronLeft, Copy, Check, Share2, ScanLine } from "lucide-react"
+import { ChevronLeft, ChevronDown, Copy, Check, Share2, ScanLine } from "lucide-react"
 import { findTopMatches, rgbToHex, extractDominantColor, describeSwatchVsScanned, findBestColorPerPalette, type ColorMatch, type SwatchInfo, type PaletteColorMatch } from "@/lib/color-utils"
 import { getSubseasonDescription, getPaletteByName } from "@/lib/seasonal-palettes"
 import { getSegmentationMask, filterPixelsByMask } from "@/lib/segmentation"
@@ -39,6 +39,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
   const [hexCopied, setHexCopied] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [selectedSwatch, setSelectedSwatch] = useState<SwatchInfo | null>(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [shareSupported] = useState(() => typeof navigator !== "undefined" && !!navigator.share)
   const imageDataRef = useRef<{ width: number; height: number; ctx: CanvasRenderingContext2D } | null>(null)
   // Segmentation mask — populated async after image loads; null = not ready yet (fall back to unmasked)
@@ -333,13 +334,94 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
               </div>
             </div>
 
-            {/* Season description */}
-            <div className="px-5 py-4 border-b border-border">
-              <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-1.5">About {topMatch.paletteName}</p>
-              <p className="text-sm text-foreground leading-relaxed">
-                {getSubseasonDescription(topMatch.paletteName)}
-              </p>
-            </div>
+            {/* Accordion — About season + full color strip */}
+            {seasonPalette && (
+              <div className="border-b border-border">
+                {/* Toggle header */}
+                <button
+                  onClick={() => { setPaletteOpen(o => !o); setSelectedSwatch(null) }}
+                  className="w-full flex items-center justify-between px-5 py-4 focus:outline-none"
+                >
+                  <span className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground">
+                    About {topMatch.paletteName}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${paletteOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {/* Collapsible body */}
+                {paletteOpen && (
+                  <div className="px-5 pb-5">
+                    {/* Description */}
+                    <p className="text-sm text-foreground leading-relaxed mb-5">
+                      {getSubseasonDescription(topMatch.paletteName)}
+                    </p>
+
+                    {/* Color strip label */}
+                    <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
+                      More {topMatch.paletteName} colors
+                    </p>
+
+                    {/* py/px-[3px] + negative margin gives the outer shadow ring room to render
+                        without being clipped by overflow-x-auto */}
+                    <div className="flex gap-1.5 overflow-x-auto py-[3px] -my-[3px] px-[3px] -mx-[3px]">
+                      {seasonPalette.colors.map((c, i) => {
+                        const isSelected = selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
+                        const de = sample ? describeSwatchVsScanned(c, sample.scannedHex).deltaE : 999
+                        const harmonyTier = de <= 6 ? 'strong' : de <= 14 ? 'soft' : 'none'
+                        return (
+                          <button
+                            key={i}
+                            onClick={() =>
+                              setSelectedSwatch(prev =>
+                                prev?.hex.toUpperCase() === c.toUpperCase()
+                                  ? null
+                                  : describeSwatchVsScanned(c, sample?.scannedHex ?? topMatch.hex)
+                              )
+                            }
+                            className={`w-11 h-11 flex-shrink-0 focus:outline-none transition-shadow duration-150 ${
+                              isSelected
+                                ? 'shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95),0_0_0_2px_rgba(0,0,0,0.9)] border-0'
+                                : harmonyTier === 'strong'
+                                  ? 'border border-border/30 shadow-[0_0_0_2px_rgba(255,255,255,0.55)]'
+                                  : harmonyTier === 'soft'
+                                    ? 'border border-border/30 shadow-[0_0_0_1.5px_rgba(255,255,255,0.22)]'
+                                    : 'border border-border/30'
+                            }`}
+                            style={{ backgroundColor: c }}
+                            aria-label={c}
+                          />
+                        )
+                      })}
+                    </div>
+
+                    {/* Swatch detail card */}
+                    {selectedSwatch && (
+                      <div className="mt-3 flex items-center gap-3 p-3 border border-border bg-secondary/40">
+                        <div
+                          className="w-10 h-10 flex-shrink-0 border border-border/40"
+                          style={{ backgroundColor: selectedSwatch.hex }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-serif text-base leading-tight">{selectedSwatch.name}</p>
+                          <p className="text-[12px] font-mono text-muted-foreground mt-0.5">{selectedSwatch.hex.toUpperCase()}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className={`text-[12px] font-medium ${
+                            selectedSwatch.proximity === 'Exact match' ? 'text-emerald-500' :
+                            selectedSwatch.proximity === 'Very close'  ? 'text-emerald-400' :
+                            selectedSwatch.proximity === 'Close'       ? 'text-amber-400'   :
+                            selectedSwatch.proximity === 'Similar'     ? 'text-orange-400'  :
+                            'text-muted-foreground'
+                          }`}>{selectedSwatch.proximity}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Best color match per related palette — 2×3 grid */}
             {crossPaletteMatches.length > 0 && (
@@ -361,71 +443,6 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Same-season color strip */}
-            {seasonPalette && (
-              <div className="px-5 pt-6 pb-6">
-                <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
-                  More {topMatch.paletteName} colors
-                </p>
-                {/* py/px-[3px] + negative margin gives the outer shadow ring room to render
-                    without being clipped by overflow-x-auto */}
-                <div className="flex gap-1.5 overflow-x-auto py-[3px] -my-[3px] px-[3px] -mx-[3px]">
-                  {seasonPalette.colors.map((c, i) => {
-                    const isSelected = selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
-                    // Harmony tier — compare swatch against the raw scanned color
-                    const de = sample ? describeSwatchVsScanned(c, sample.scannedHex).deltaE : 999
-                    const harmonyTier = de <= 6 ? 'strong' : de <= 14 ? 'soft' : 'none'
-                    return (
-                      <button
-                        key={i}
-                        onClick={() =>
-                          setSelectedSwatch(prev =>
-                            prev?.hex.toUpperCase() === c.toUpperCase()
-                              ? null
-                              : describeSwatchVsScanned(c, sample?.scannedHex ?? topMatch.hex)
-                          )
-                        }
-                        className={`w-11 h-11 flex-shrink-0 focus:outline-none transition-shadow duration-150 ${
-                          isSelected
-                            ? 'shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95),0_0_0_2px_rgba(0,0,0,0.9)] border-0'
-                            : harmonyTier === 'strong'
-                              ? 'border border-border/30 shadow-[0_0_0_2px_rgba(255,255,255,0.55)]'
-                              : harmonyTier === 'soft'
-                                ? 'border border-border/30 shadow-[0_0_0_1.5px_rgba(255,255,255,0.22)]'
-                                : 'border border-border/30'
-                        }`}
-                        style={{ backgroundColor: c }}
-                        aria-label={c}
-                      />
-                    )
-                  })}
-                </div>
-
-                {/* Swatch detail card — appears below the strip on tap */}
-                {selectedSwatch && (
-                  <div className="mt-3 flex items-center gap-3 p-3 border border-border bg-secondary/40">
-                    <div
-                      className="w-10 h-10 flex-shrink-0 border border-border/40"
-                      style={{ backgroundColor: selectedSwatch.hex }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-serif text-base leading-tight">{selectedSwatch.name}</p>
-                      <p className="text-[12px] font-mono text-muted-foreground mt-0.5">{selectedSwatch.hex.toUpperCase()}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className={`text-[12px] font-medium ${
-                        selectedSwatch.proximity === 'Exact match' ? 'text-emerald-500' :
-                        selectedSwatch.proximity === 'Very close'  ? 'text-emerald-400' :
-                        selectedSwatch.proximity === 'Close'       ? 'text-amber-400'   :
-                        selectedSwatch.proximity === 'Similar'     ? 'text-orange-400'  :
-                        'text-muted-foreground'
-                      }`}>{selectedSwatch.proximity}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
