@@ -36,10 +36,14 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
   const [sample, setSample] = useState<SamplePoint | null>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [hexCopied, setHexCopied] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const [shareSupported] = useState(() => typeof navigator !== "undefined" && !!navigator.share)
   const imageDataRef = useRef<{ width: number; height: number; ctx: CanvasRenderingContext2D } | null>(null)
   // Segmentation mask — populated async after image loads; null = not ready yet (fall back to unmasked)
   const maskRef = useRef<Float32Array | null>(null)
+  // rAF-throttle state for live drag sampling
+  const rafRef = useRef<number | null>(null)
+  const pendingCoordsRef = useRef<{ x: number; y: number } | null>(null)
 
   // Convert container coords (0–1) → image coords (0–1), accounting for object-contain letterboxing.
   // Returns null when the point falls in the letterbox (outside the actual image).
@@ -114,20 +118,67 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     img.src = imageUrl
   }, [imageUrl, sampleAt])
 
-  // Tap on image → move sample pin.
-  // Guard: reject taps that land in the letterbox area (outside the actual image).
-  const handleImageTap = useCallback((e: React.PointerEvent) => {
-    if (!containerRef.current) return
+  // Helper — get clamped container-relative coords from a pointer event
+  const getCoordsFromEvent = useCallback((e: React.PointerEvent | PointerEvent) => {
+    if (!containerRef.current) return null
     const rect = containerRef.current.getBoundingClientRect()
     const x = (e.clientX - rect.left) / rect.width
     const y = (e.clientY - rect.top) / rect.height
+    if (!toImageCoords(x, y)) return null
+    return {
+      x: Math.max(0.02, Math.min(0.98, x)),
+      y: Math.max(0.02, Math.min(0.98, y)),
+    }
+  }, [toImageCoords])
 
-    if (!toImageCoords(x, y)) return
+  // Flush pending coordinates → update pin + sample in one rAF tick
+  const flushRaf = useCallback(() => {
+    rafRef.current = null
+    const coords = pendingCoordsRef.current
+    if (!coords) return
+    pendingCoordsRef.current = null
+    const matches = sampleAt(coords.x, coords.y)
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
+  }, [sampleAt])
 
-    const cx = Math.max(0.02, Math.min(0.98, x))
-    const cy = Math.max(0.02, Math.min(0.98, y))
-    setSample(prev => prev ? { ...prev, x: cx, y: cy, matches: sampleAt(cx, cy) } : null)
-  }, [sampleAt, toImageCoords])
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (!imageLoaded) return
+    const coords = getCoordsFromEvent(e)
+    if (!coords) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setIsDragging(true)
+    // Immediate sample on first touch so there's instant feedback
+    const matches = sampleAt(coords.x, coords.y)
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
+  }, [imageLoaded, getCoordsFromEvent, sampleAt])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging) return
+    const coords = getCoordsFromEvent(e)
+    if (!coords) return
+    // Move pin immediately (CSS position update is cheap)
+    pendingCoordsRef.current = coords
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(flushRaf)
+    }
+    // Also update pin position instantly via setSample without waiting for rAF
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y } : null)
+  }, [isDragging, getCoordsFromEvent, flushRaf])
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!isDragging) return
+    setIsDragging(false)
+    // Cancel any pending rAF and do a final accurate sample on release
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    const coords = getCoordsFromEvent(e) ?? pendingCoordsRef.current
+    pendingCoordsRef.current = null
+    if (!coords) return
+    const matches = sampleAt(coords.x, coords.y)
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
+  }, [isDragging, getCoordsFromEvent, sampleAt])
 
   const copyHex = useCallback((hex: string) => {
     navigator.clipboard.writeText(hex).then(() => {
@@ -178,19 +229,22 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
           ref={containerRef}
           className="relative bg-black overflow-hidden touch-none flex-shrink-0"
           style={{ height: '45vh' }}
-          onPointerDown={imageLoaded ? handleImageTap : undefined}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         >
           <canvas ref={canvasRef} className="hidden" />
           <div className="relative w-full h-full">
             <Image src={imageUrl} alt="Analyzed photo" fill className="object-contain pointer-events-none" />
 
-            {/* Sample pin */}
+            {/* Sample pin — grows slightly while dragging for tactile feedback */}
             {imageLoaded && sample && (
               <div
-                className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+                className={`absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 ${isDragging ? 'scale-125' : 'scale-110'}`}
                 style={{ left: `${sample.x * 100}%`, top: `${sample.y * 100}%`, zIndex: 40 }}
               >
-                <div className="w-7 h-7 rounded-full border-2 border-white scale-110 shadow-[0_0_0_1.5px_rgba(0,0,0,0.7)]" />
+                <div className="w-7 h-7 rounded-full border-2 border-white shadow-[0_0_0_1.5px_rgba(0,0,0,0.7)]" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.8)]" />
                 </div>
@@ -202,9 +256,9 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
             )}
           </div>
 
-          {imageLoaded && (
+          {imageLoaded && !isDragging && (
             <p className="absolute bottom-2 left-0 right-0 text-center text-[13px] tracking-[0.15em] uppercase text-white/90 pointer-events-none" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
-              Tap to move
+              Drag to sample
             </p>
           )}
         </div>
