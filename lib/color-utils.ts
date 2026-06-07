@@ -54,200 +54,183 @@ function deltaE(lab1: [number, number, number], lab2: [number, number, number]):
   )
 }
 
-function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  const rr = r / 255, gg = g / 255, bb = b / 255
-  const max = Math.max(rr, gg, bb), min = Math.min(rr, gg, bb)
-  const l = (max + min) / 2
-  if (max === min) return [0, 0, l]
-  const d = max - min
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-  let h = 0
-  if (max === rr) h = ((gg - bb) / d + (gg < bb ? 6 : 0)) / 6
-  else if (max === gg) h = ((bb - rr) / d + 2) / 6
-  else h = ((rr - gg) / d + 4) / 6
-  return [h * 360, s, l]
-}
+
+// ─── Named colour reference (CIELAB nearest-neighbour) ───────────────────────
+// Replaces the HSL rule-tree which could not reliably distinguish perceptually
+// similar colours at hue boundaries (e.g. dusty pink vs peach at H≈15°).
+// CIELAB nearest-neighbour matches human perception directly.
+//
+// Reference: ~130 fashion-relevant colour names defined as hex anchors.
+// getColorName finds the closest anchor in CIELAB and returns its name.
+
+const COLOR_REFERENCE: Array<[string, string]> = [
+  // Whites & near-whites
+  ['#FFFFFF', 'White'],
+  ['#FFFEF2', 'Ivory'],
+  ['#FFF8E7', 'Cream'],
+  ['#F5F5F0', 'Off-White'],
+  ['#ECDDD0', 'Warm White'],
+
+  // Neutrals / greys
+  ['#E8E8E8', 'Silver'],
+  ['#D0D0D0', 'Light Grey'],
+  ['#A8A8A8', 'Grey'],
+  ['#707070', 'Medium Grey'],
+  ['#484848', 'Charcoal'],
+  ['#282828', 'Dark Charcoal'],
+  ['#111111', 'Black'],
+
+  // Warm neutrals / beiges
+  ['#EDE0CE', 'Pearl'],
+  ['#E0CEB0', 'Sand'],
+  ['#D4BA94', 'Warm Beige'],
+  ['#C8A87A', 'Tan'],
+  ['#B89060', 'Camel'],
+  ['#A87848', 'Warm Tan'],
+  ['#8C6840', 'Khaki Brown'],
+  ['#D8C8A8', 'Khaki'],
+  ['#BFB080', 'Dark Khaki'],
+
+  // Dusty / muted pinks — placed before saturated pinks so they win at low saturation
+  ['#E8D0CA', 'Powder Pink'],
+  ['#D9B8B0', 'Dusty Pink'],
+  ['#C8A09A', 'Dusty Rose'],
+  ['#B88880', 'Rose Blush'],
+  ['#A87068', 'Antique Rose'],
+  ['#C8B0B8', 'Dusty Mauve'],
+  ['#B090A0', 'Mauve'],
+  ['#906878', 'Deep Mauve'],
+
+  // Saturated pinks / roses
+  ['#FFD0DA', 'Blush'],
+  ['#FFB0C0', 'Light Pink'],
+  ['#FF80A0', 'Pink'],
+  ['#FF5080', 'Hot Pink'],
+  ['#E8306A', 'Deep Pink'],
+  ['#FF40A0', 'Fuchsia Pink'],
+  ['#D800A0', 'Fuchsia'],
+  ['#B00090', 'Magenta'],
+
+  // Reds
+  ['#FFB8B0', 'Blush Red'],
+  ['#E07070', 'Rose'],
+  ['#D84040', 'Red'],
+  ['#C02020', 'Crimson'],
+  ['#800020', 'Burgundy'],
+  ['#600018', 'Wine'],
+  ['#400010', 'Maroon'],
+
+  // Corals & salmons
+  ['#FFD0B8', 'Salmon'],
+  ['#FFA888', 'Light Coral'],
+  ['#FF8060', 'Coral'],
+  ['#E86040', 'Coral Red'],
+
+  // Peaches & apricots — distinctly orange-hued, higher saturation than dusty pink
+  ['#FFE0C8', 'Peach'],
+  ['#FFCCA8', 'Light Peach'],
+  ['#FFB888', 'Apricot'],
+  ['#FFA070', 'Soft Apricot'],
+
+  // Oranges
+  ['#FF8C00', 'Orange'],
+  ['#E87000', 'Deep Orange'],
+  ['#CC5500', 'Burnt Orange'],
+  ['#C85020', 'Rust'],
+  ['#A03818', 'Dark Rust'],
+
+  // Terracottas & earth tones
+  ['#D08060', 'Terracotta'],
+  ['#B86840', 'Sienna'],
+  ['#9A5030', 'Brick'],
+
+  // Browns
+  ['#D0A880', 'Caramel'],
+  ['#B88858', 'Golden Brown'],
+  ['#906038', 'Toffee'],
+  ['#704020', 'Chocolate'],
+  ['#502808', 'Dark Brown'],
+  ['#301800', 'Espresso'],
+
+  // Yellows & golds
+  ['#FFF8B0', 'Pale Yellow'],
+  ['#FFE860', 'Yellow'],
+  ['#FFD000', 'Golden Yellow'],
+  ['#F0B800', 'Amber'],
+  ['#D09800', 'Mustard'],
+  ['#A07800', 'Ochre'],
+  ['#FFF0C0', 'Butter Yellow'],
+  ['#E8D880', 'Straw'],
+
+  // Yellow-greens & olives
+  ['#C8E060', 'Lime'],
+  ['#A0C030', 'Chartreuse'],
+  ['#808018', 'Olive'],
+  ['#686810', 'Dark Olive'],
+  ['#98A060', 'Olive Green'],
+  ['#787840', 'Moss'],
+
+  // Greens
+  ['#B8F0C8', 'Mint'],
+  ['#80E0A0', 'Light Green'],
+  ['#48C878', 'Green'],
+  ['#20A050', 'Forest Green'],
+  ['#106030', 'Dark Green'],
+  ['#A8C8A0', 'Sage'],
+  ['#688860', 'Fern'],
+
+  // Teals & cyans
+  ['#A0E8D8', 'Pale Teal'],
+  ['#40C0B0', 'Teal'],
+  ['#208878', 'Dark Teal'],
+  ['#106058', 'Deep Teal'],
+  ['#60D8C8', 'Turquoise'],
+
+  // Blues
+  ['#C0E0FF', 'Baby Blue'],
+  ['#80C0F0', 'Sky Blue'],
+  ['#60A0D8', 'Cornflower Blue'],
+  ['#4080C0', 'Blue'],
+  ['#1860A8', 'Cobalt Blue'],
+  ['#103880', 'Navy'],
+  ['#081840', 'Midnight Blue'],
+  ['#8090B0', 'Steel Blue'],
+  ['#9090C0', 'Slate Blue'],
+  ['#A0B8D8', 'Dusty Blue'],
+
+  // Periwinkle & violet-blues
+  ['#C0C8E8', 'Periwinkle'],
+  ['#9090D0', 'Blue Lavender'],
+  ['#6060B0', 'Indigo'],
+  ['#400880', 'Deep Indigo'],
+
+  // Purples & lavenders
+  ['#E8D8F0', 'Pale Lavender'],
+  ['#C8A8E0', 'Lavender'],
+  ['#E0C8E8', 'Lilac'],
+  ['#A870C8', 'Purple'],
+  ['#8040A8', 'Deep Purple'],
+  ['#602888', 'Plum'],
+  ['#400868', 'Deep Plum'],
+  ['#B090C0', 'Dusty Purple'],
+  ['#806890', 'Muted Violet'],
+  ['#A040C0', 'Violet'],
+]
+
+// Pre-compute Lab values for all reference colours (done once at module load)
+const COLOR_REFERENCE_LAB: Array<[string, [number, number, number]]> = COLOR_REFERENCE.map(
+  ([hex, name]) => [name, rgbToLab(...hexToRgb(hex))]
+)
 
 function getColorName(r: number, g: number, b: number): string {
-  const [h, s, l] = rgbToHsl(r, g, b)
-
-  // Near-whites — very high lightness reads as white/cream regardless of hue tint
-  if (l > 0.98) return 'White'
-  if (l > 0.94) {
-    if (h >= 20 && h <= 70) return 'Cream'
-    return 'Off-White'
+  const inputLab = rgbToLab(r, g, b)
+  let bestName = 'Unknown'
+  let bestDist = Infinity
+  for (const [name, lab] of COLOR_REFERENCE_LAB) {
+    const d = deltaE(inputLab, lab)
+    if (d < bestDist) { bestDist = d; bestName = name }
   }
-
-  // Neutrals — low saturation
-  if (s < 0.08) {
-    if (l > 0.88) return 'Off-White'
-    if (l > 0.78) return 'Silver'
-    if (l > 0.62) return 'Light Grey'
-    if (l > 0.42) return 'Grey'
-    if (l > 0.22) return 'Charcoal'
-    if (l > 0.08) return 'Dark Charcoal'
-    return 'Black'
-  }
-
-  // Warm neutrals / browns (low-medium saturation, warm hue)
-  if (s < 0.25 && h >= 15 && h <= 60) {
-    if (l > 0.82) return 'Cream'
-    if (l > 0.72) return 'Ivory'
-    if (l > 0.60) return 'Sand'
-    if (l > 0.45) return 'Tan'
-    if (l > 0.30) return 'Camel'
-    if (l > 0.18) return 'Dark Brown'
-    return 'Espresso'
-  }
-
-  // Browns (medium saturation)
-  if (s >= 0.25 && s < 0.55 && h >= 15 && h <= 40) {
-    if (l > 0.70) return 'Peach'
-    if (l > 0.55) return 'Apricot'
-    if (l > 0.40) return 'Caramel'
-    if (l > 0.28) return 'Chocolate'
-    return 'Dark Brown'
-  }
-
-  // Reds (0–15 and 345–360)
-  if (h < 15 || h >= 345) {
-    if (l > 0.75) return 'Blush'
-    if (l > 0.60) return 'Rose'
-    if (s < 0.45) return l > 0.40 ? 'Dusty Rose' : 'Mauve'
-    if (l > 0.45) return 'Coral Red'
-    if (l > 0.30) return 'Red'
-    if (l > 0.18) return 'Burgundy'
-    return 'Maroon'
-  }
-
-  // Red-Orange (15–30)
-  if (h < 30) {
-    if (l > 0.72) return 'Salmon'
-    if (l > 0.55) return 'Coral'
-    if (l > 0.38) return 'Rust'
-    if (l > 0.22) return 'Burnt Orange'
-    return 'Dark Rust'
-  }
-
-  // Orange (30–40) — pure orange territory
-  if (h < 40) {
-    if (l > 0.78) return 'Peach'
-    if (l > 0.62) return 'Light Peach'
-    if (s < 0.4) return l > 0.50 ? 'Warm Beige' : 'Taupe'
-    if (l > 0.48) return 'Orange'
-    if (l > 0.33) return 'Terracotta'
-    return 'Sienna'
-  }
-
-  // Amber / Golden (40–65) — warm gold territory, not orange
-  if (h < 65) {
-    // Low-saturation tones here are khaki/olive
-    if (s < 0.30) {
-      if (l > 0.65) return 'Khaki'
-      if (l > 0.45) return 'Dark Khaki'
-      return 'Olive'
-    }
-    if (l > 0.75) return 'Butter Yellow'
-    if (l > 0.50) return 'Amber'
-    if (l > 0.35) return 'Mustard'
-    return 'Dark Mustard'
-  }
-
-  // Yellow (65–78)
-  if (h < 78) {
-    // Low-saturation yellows are khaki/olive, not true yellows
-    if (s < 0.35) {
-      if (l > 0.65) return 'Khaki'
-      if (l > 0.45) return 'Dark Khaki'
-      return 'Olive'
-    }
-    // High-saturation at h > 72 is perceptually yellow-green, not golden yellow
-    if (s > 0.55 && h > 72) return l > 0.55 ? 'Chartreuse' : l > 0.38 ? 'Yellow-Green' : 'Olive Green'
-    if (l > 0.75) return 'Pale Yellow'
-    if (l > 0.55) return 'Yellow'
-    if (l > 0.40) return 'Golden Yellow'
-    return 'Ochre'
-  }
-
-  // Yellow-Green (78–110)
-  if (h < 110) {
-    if (s < 0.25) return l > 0.55 ? 'Khaki' : l > 0.38 ? 'Olive Green' : 'Dark Olive'
-    // Vivid bright greens — high saturation prevents olive naming
-    if (s > 0.55) {
-      if (l > 0.60) return 'Lime'
-      if (l > 0.45) return 'Chartreuse'
-      if (l > 0.30) return 'Vivid Green'
-      return 'Dark Green'
-    }
-    if (l > 0.75) return 'Lime'
-    if (l > 0.55) return 'Chartreuse'
-    if (l > 0.38) return 'Olive Green'
-    return 'Dark Olive'
-  }
-
-  // Green (110–160)
-  if (h < 160) {
-    if (l > 0.80) return 'Mint'
-    if (l > 0.65) return 'Light Green'
-    if (s < 0.30) return l > 0.45 ? 'Sage' : 'Moss'
-    if (l > 0.45) return 'Green'
-    if (l > 0.28) return 'Forest Green'
-    return 'Dark Green'
-  }
-
-  // Teal / Cyan (160–200)
-  if (h < 200) {
-    if (l > 0.70) return 'Pale Teal'
-    if (l > 0.50) return 'Teal'
-    if (l > 0.32) return 'Dark Teal'
-    return 'Deep Teal'
-  }
-
-  // Blue (200–250)
-  if (h < 250) {
-    if (l > 0.80) return 'Baby Blue'
-    if (l > 0.65) return 'Sky Blue'
-    if (s < 0.30) return l > 0.50 ? 'Steel Blue' : 'Slate Blue'
-    if (l > 0.50) return 'Cornflower Blue'
-    if (l > 0.35) return 'Blue'
-    if (l > 0.22) return 'Navy'
-    return 'Midnight Blue'
-  }
-
-  // Blue-Purple / Violet (250–275)
-  if (h < 275) {
-    // Vivid high-saturation in this range is violet/purple, not periwinkle
-    if (s > 0.60) return l > 0.60 ? 'Lavender' : l > 0.40 ? 'Violet' : l > 0.25 ? 'Indigo' : 'Deep Indigo'
-    if (l > 0.70) return 'Lavender'
-    if (l > 0.50) return 'Periwinkle'
-    if (l > 0.32) return 'Indigo'
-    return 'Deep Indigo'
-  }
-
-  // Purple (275–315)
-  if (h < 315) {
-    if (l > 0.75) return 'Lilac'
-    if (l > 0.60) return 'Lavender'
-    if (s < 0.30) return l > 0.45 ? 'Dusty Purple' : 'Muted Violet'
-    if (l > 0.45) return 'Purple'
-    if (l > 0.28) return 'Plum'
-    return 'Deep Plum'
-  }
-
-  // Fuchsia / Magenta / Hot Pink (315–345)
-  if (s > 0.70) {
-    // Vivid high-saturation: fuchsia/magenta territory
-    if (l > 0.62) return 'Fuchsia Pink'
-    if (l > 0.40) return 'Fuchsia'
-    if (l > 0.25) return 'Magenta'
-    return 'Deep Magenta'
-  }
-  if (l > 0.78) return 'Blush Pink'
-  if (l > 0.62) return 'Pink'
-  if (s < 0.35) return l > 0.50 ? 'Dusty Mauve' : 'Mauve'
-  if (l > 0.48) return 'Hot Pink'
-  if (l > 0.32) return 'Raspberry'
-  return 'Deep Raspberry'
+  return bestName
 }
 
 // ─── Lab ↔ RGB ───────────────────────────────────────────────────────────────
