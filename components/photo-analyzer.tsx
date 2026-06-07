@@ -12,7 +12,8 @@ interface SamplePoint {
   // position in container space (0–1)
   x: number
   y: number
-  matches: ColorMatch[]  // top 3, sorted by confidence
+  matches: ColorMatch[]    // top 3, sorted by confidence
+  scannedHex: string       // raw extracted garment color (before palette matching)
 }
 
 // Von Kries chromatic adaptation — correct sampled pixel for ambient light cast
@@ -63,11 +64,12 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     return [ix, iy]
   }, [])
 
-  const sampleAt = useCallback((cx: number, cy: number): ColorMatch[] => {
-    const fallback: ColorMatch = { hex: "#888888", name: "Unknown", paletteName: "Unknown", season: "spring", confidence: 0 }
-    if (!imageDataRef.current) return [fallback]
+  const sampleAt = useCallback((cx: number, cy: number): { matches: ColorMatch[], scannedHex: string } => {
+    const fallbackHex = "#888888"
+    const fallback: ColorMatch = { hex: fallbackHex, name: "Unknown", paletteName: "Unknown", season: "spring", confidence: 0 }
+    if (!imageDataRef.current) return { matches: [fallback], scannedHex: fallbackHex }
     const coords = toImageCoords(cx, cy)
-    if (!coords) return [fallback]
+    if (!coords) return { matches: [fallback], scannedHex: fallbackHex }
     const [ix, iy] = coords
     const { width, height, ctx } = imageDataRef.current
     const px = Math.floor(ix * width)
@@ -82,7 +84,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     const masked = filterPixelsByMask(imageData.data, maskRef.current, x0, y0, w, h, width)
     const corrected = masked.map(([r, g, b]) => applyCorrection(r, g, b, castVector))
     const [cr, cg, cb] = extractDominantColor(corrected)
-    return findTopMatches(rgbToHex(cr, cg, cb), 3)
+    const scannedHex = rgbToHex(cr, cg, cb)
+    return { matches: findTopMatches(scannedHex, 3), scannedHex }
   }, [toImageCoords, castVector])
 
   // Load image onto canvas, then auto-place sample at center
@@ -100,7 +103,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
       imageDataRef.current = { width: img.width, height: img.height, ctx }
       setImageLoaded(true)
       setTimeout(() => {
-        setSample({ id: 0, x: 0.5, y: 0.5, matches: sampleAt(0.5, 0.5) })
+        const { matches, scannedHex } = sampleAt(0.5, 0.5)
+        setSample({ id: 0, x: 0.5, y: 0.5, matches, scannedHex })
       }, 80)
 
       // Run segmentation in background — updates maskRef when ready.
@@ -109,10 +113,11 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
         if (mask) {
           maskRef.current = mask
           // Re-sample with the mask now available
-          setSample(prev => prev
-            ? { ...prev, matches: sampleAt(prev.x, prev.y) }
-            : prev
-          )
+          setSample(prev => {
+            if (!prev) return prev
+            const { matches, scannedHex } = sampleAt(prev.x, prev.y)
+            return { ...prev, matches, scannedHex }
+          })
         }
       })
     }
@@ -138,8 +143,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     const coords = pendingCoordsRef.current
     if (!coords) return
     pendingCoordsRef.current = null
-    const matches = sampleAt(coords.x, coords.y)
-    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
+    const { matches, scannedHex } = sampleAt(coords.x, coords.y)
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches, scannedHex } : null)
   }, [sampleAt])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -150,8 +155,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     setIsDragging(true)
     setSelectedSwatch(null)
     // Immediate sample on first touch so there's instant feedback
-    const matches = sampleAt(coords.x, coords.y)
-    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
+    const { matches, scannedHex } = sampleAt(coords.x, coords.y)
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches, scannedHex } : null)
   }, [imageLoaded, getCoordsFromEvent, sampleAt])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -178,8 +183,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     const coords = getCoordsFromEvent(e) ?? pendingCoordsRef.current
     pendingCoordsRef.current = null
     if (!coords) return
-    const matches = sampleAt(coords.x, coords.y)
-    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
+    const { matches, scannedHex } = sampleAt(coords.x, coords.y)
+    setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches, scannedHex } : null)
   }, [isDragging, getCoordsFromEvent, sampleAt])
 
   const copyHex = useCallback((hex: string) => {
@@ -346,6 +351,9 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                 <div className="flex gap-1.5 overflow-x-auto py-[3px] -my-[3px] px-[3px] -mx-[3px]">
                   {seasonPalette.colors.map((c, i) => {
                     const isSelected = selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
+                    // Harmony tier — compare swatch against the raw scanned color
+                    const de = sample ? describeSwatchVsScanned(c, sample.scannedHex).deltaE : 999
+                    const harmonyTier = de <= 6 ? 'strong' : de <= 14 ? 'soft' : 'none'
                     return (
                       <button
                         key={i}
@@ -353,13 +361,17 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                           setSelectedSwatch(prev =>
                             prev?.hex.toUpperCase() === c.toUpperCase()
                               ? null
-                              : describeSwatchVsScanned(c, topMatch.hex)
+                              : describeSwatchVsScanned(c, sample?.scannedHex ?? topMatch.hex)
                           )
                         }
-                        className={`w-11 h-11 flex-shrink-0 focus:outline-none transition-shadow duration-100 ${
+                        className={`w-11 h-11 flex-shrink-0 focus:outline-none transition-shadow duration-150 ${
                           isSelected
                             ? 'shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95),0_0_0_2px_rgba(0,0,0,0.9)] border-0'
-                            : 'border border-border/30'
+                            : harmonyTier === 'strong'
+                              ? 'border border-border/30 shadow-[0_0_0_2px_rgba(255,255,255,0.55)]'
+                              : harmonyTier === 'soft'
+                                ? 'border border-border/30 shadow-[0_0_0_1.5px_rgba(255,255,255,0.22)]'
+                                : 'border border-border/30'
                         }`}
                         style={{ backgroundColor: c }}
                         aria-label={c}
