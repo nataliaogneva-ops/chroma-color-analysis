@@ -144,6 +144,14 @@ const COLOR_REFERENCE: Array<[string, string]> = [
   ['#B86840', 'Sienna'],
   ['#9A5030', 'Brick'],
 
+  // Dark warm neutrals / taupes — distinct from cool charcoal (b≈0) and
+  // saturated brown (a>10). These live at L≈28–45, a≈1–5, b≈8–16.
+  ['#706050', 'Warm Taupe'],       // L≈42, slightly warm mid-tone
+  ['#5A4D3C', 'Dark Taupe'],       // L≈33, close to #514837 territory
+  ['#514837', 'Deep Taupe'],       // L≈31, the exact colour family reported
+  ['#403830', 'Dark Warm Brown'],  // L≈25, very dark warm neutral
+  ['#7A6A58', 'Taupe'],            // L≈46, classic mid taupe
+
   // Browns
   ['#D0A880', 'Caramel'],
   ['#B88858', 'Golden Brown'],
