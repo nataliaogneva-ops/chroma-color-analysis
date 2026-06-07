@@ -1,0 +1,304 @@
+"use client"
+
+import { useEffect, useRef, useState, useCallback } from "react"
+import Image from "next/image"
+import { ChevronLeft, Copy, Check, Share2, ScanLine } from "lucide-react"
+import { findTopMatches, rgbToHex, extractDominantColor, type ColorMatch } from "@/lib/color-utils"
+import { getSubseasonDescription, getPaletteByName } from "@/lib/seasonal-palettes"
+
+interface SamplePoint {
+  id: number
+  // position in container space (0–1)
+  x: number
+  y: number
+  matches: ColorMatch[]  // top 3, sorted by confidence
+}
+
+// Von Kries chromatic adaptation — correct sampled pixel for ambient light cast
+function applyCorrection(r: number, g: number, b: number, cast: [number, number, number]): [number, number, number] {
+  return [
+    Math.min(255, Math.max(0, Math.round(r / cast[0]))),
+    Math.min(255, Math.max(0, Math.round(g / cast[1]))),
+    Math.min(255, Math.max(0, Math.round(b / cast[2]))),
+  ]
+}
+
+interface PhotoAnalyzerProps {
+  imageUrl: string
+  castVector: [number, number, number]
+  onReset: () => void
+}
+
+export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [sample, setSample] = useState<SamplePoint | null>(null)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [hexCopied, setHexCopied] = useState(false)
+  const [shareSupported] = useState(() => typeof navigator !== "undefined" && !!navigator.share)
+  const imageDataRef = useRef<{ width: number; height: number; ctx: CanvasRenderingContext2D } | null>(null)
+
+  // Convert container coords (0–1) → image coords (0–1), accounting for object-contain letterboxing.
+  // Returns null when the point falls in the letterbox (outside the actual image).
+  const toImageCoords = useCallback((cx: number, cy: number): [number, number] | null => {
+    if (!imageDataRef.current || !containerRef.current) return null
+    const { width: iw, height: ih } = imageDataRef.current
+    const rect = containerRef.current.getBoundingClientRect()
+    const ca = rect.width / rect.height
+    const ia = iw / ih
+    let left = 0, top = 0, w = 1, h = 1
+    if (ia > ca) { h = ca / ia; top = (1 - h) / 2 }
+    else { w = ia / ca; left = (1 - w) / 2 }
+    const ix = (cx - left) / w
+    const iy = (cy - top) / h
+    if (ix < 0 || ix > 1 || iy < 0 || iy > 1) return null
+    return [ix, iy]
+  }, [])
+
+  const sampleAt = useCallback((cx: number, cy: number): ColorMatch[] => {
+    const fallback: ColorMatch = { hex: "#888888", name: "Unknown", paletteName: "Unknown", season: "spring", confidence: 0 }
+    if (!imageDataRef.current) return [fallback]
+    const coords = toImageCoords(cx, cy)
+    if (!coords) return [fallback]
+    const [ix, iy] = coords
+    const { width, height, ctx } = imageDataRef.current
+    const px = Math.floor(ix * width)
+    const py = Math.floor(iy * height)
+    // 28px radius matches the live reticle; gives K-Means enough pixels to cluster meaningfully
+    const radius = 28
+    const x0 = Math.max(0, px - radius), y0 = Math.max(0, py - radius)
+    const w = Math.min(width - x0, radius * 2 + 1), h = Math.min(height - y0, radius * 2 + 1)
+    const data = ctx.getImageData(x0, y0, w, h).data
+    const count = w * h
+    // Apply cast correction per-pixel before clustering so K-Means works on corrected colors
+    const rawPixels: Array<[number, number, number]> = []
+    for (let i = 0; i < count; i++) {
+      const [pr, pg, pb] = applyCorrection(data[i*4], data[i*4+1], data[i*4+2], castVector)
+      rawPixels.push([pr, pg, pb])
+    }
+    const [cr, cg, cb] = extractDominantColor(rawPixels)
+    return findTopMatches(rgbToHex(cr, cg, cb), 3)
+  }, [toImageCoords])
+
+  // Load image onto canvas, then auto-place sample at center
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    if (!ctx) return
+    const img = new window.Image()
+    img.crossOrigin = "anonymous"
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx.drawImage(img, 0, 0)
+      imageDataRef.current = { width: img.width, height: img.height, ctx }
+      setImageLoaded(true)
+      setTimeout(() => {
+        setSample({ id: 0, x: 0.5, y: 0.5, matches: sampleAt(0.5, 0.5) })
+      }, 80)
+    }
+    img.src = imageUrl
+  }, [imageUrl, sampleAt])
+
+  // Tap on image → move sample pin.
+  // Guard: reject taps that land in the letterbox area (outside the actual image).
+  const handleImageTap = useCallback((e: React.PointerEvent) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width
+    const y = (e.clientY - rect.top) / rect.height
+
+    if (!toImageCoords(x, y)) return
+
+    const cx = Math.max(0.02, Math.min(0.98, x))
+    const cy = Math.max(0.02, Math.min(0.98, y))
+    setSample(prev => prev ? { ...prev, x: cx, y: cy, matches: sampleAt(cx, cy) } : null)
+  }, [sampleAt, toImageCoords])
+
+  const copyHex = useCallback((hex: string) => {
+    navigator.clipboard.writeText(hex).then(() => {
+      setHexCopied(true)
+      setTimeout(() => setHexCopied(false), 1500)
+    })
+  }, [])
+
+  const topMatch = sample?.matches[0]
+  const seasonPalette = topMatch ? getPaletteByName(topMatch.paletteName) : null
+
+  const shareResult = useCallback(async () => {
+    if (!topMatch) return
+    const description = getSubseasonDescription(topMatch.paletteName)
+    const text = `${topMatch.name} · ${topMatch.paletteName}\n${topMatch.hex.toUpperCase()}\n\n${description}`
+    try {
+      await navigator.share({ title: "CHRŌMA Color Analysis", text })
+    } catch {
+      // user cancelled or share unavailable — silently ignore
+    }
+  }, [topMatch])
+
+  return (
+    // min-h-0 is required for flex children to shrink and allow inner overflow-y-auto to work
+    <div className="flex-1 flex flex-col bg-background min-h-0">
+
+      {/* Header — sits outside the scroll container so it never scrolls away */}
+      <div
+        className="flex-shrink-0 flex items-center justify-between px-4 pb-3 border-b border-border bg-background z-20"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
+      >
+        <button
+          onClick={onReset}
+          className="flex items-center gap-1 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4 -ml-1" />
+          Back
+        </button>
+        <h1 className="font-serif text-lg tracking-wide">CHRŌMA</h1>
+        <div className="w-16" />
+      </div>
+
+      {/* Single scroll container — image + results scroll together */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+
+        {/* Image area — touch-none prevents scroll interference so taps register cleanly */}
+        <div
+          ref={containerRef}
+          className="relative bg-black overflow-hidden touch-none flex-shrink-0"
+          style={{ height: '45vh' }}
+          onPointerDown={imageLoaded ? handleImageTap : undefined}
+        >
+          <canvas ref={canvasRef} className="hidden" />
+          <div className="relative w-full h-full">
+            <Image src={imageUrl} alt="Analyzed photo" fill className="object-contain pointer-events-none" />
+
+            {/* Sample pin */}
+            {imageLoaded && sample && (
+              <div
+                className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+                style={{ left: `${sample.x * 100}%`, top: `${sample.y * 100}%`, zIndex: 40 }}
+              >
+                <div className="w-7 h-7 rounded-full border-2 border-white scale-110 shadow-[0_0_0_1.5px_rgba(0,0,0,0.7)]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.8)]" />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="absolute w-px h-full bg-white/50" />
+                  <div className="absolute h-px w-full bg-white/50" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {imageLoaded && (
+            <p className="absolute bottom-2 left-0 right-0 text-center text-[13px] tracking-[0.15em] uppercase text-white/60 pointer-events-none">
+              Tap to move
+            </p>
+          )}
+        </div>
+
+        {/* Result panel — no overflow-y-auto here; the parent scroll container handles it */}
+        {sample && topMatch && (
+          <div>
+            {/* Color identity */}
+            <div className="border-b border-border">
+              <div className="flex gap-4 px-5 pt-5 pb-4">
+                <div className="w-[110px] h-[110px] flex-shrink-0 border border-border/40" style={{ backgroundColor: topMatch.hex }} />
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                  <div>
+                    <p className="font-serif text-2xl leading-tight">{topMatch.name}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{topMatch.paletteName}</p>
+                  </div>
+                  <div className="flex items-center gap-3 mt-3">
+                    <button
+                      onClick={() => copyHex(topMatch.hex)}
+                      className="flex items-center gap-1.5 text-[12px] font-mono text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {hexCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {topMatch.hex.toUpperCase()}
+                    </button>
+                    {shareSupported && (
+                      <button
+                        onClick={shareResult}
+                        className="flex items-center gap-1.5 text-[12px] tracking-[0.1em] uppercase text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Share2 className="w-3 h-3" />
+                        Share
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Ranked palette matches */}
+            <div className="px-5 py-4 border-b border-border">
+              <p className="text-[12px] tracking-[0.2em] uppercase text-muted-foreground mb-3">Seasonal matches</p>
+              <div className="flex flex-col gap-3">
+                {sample.matches.map((match, i) => (
+                  <div key={match.paletteName} className="flex items-center gap-3">
+                    <span className="text-[12px] text-muted-foreground w-3 flex-shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between mb-1">
+                        <span className={`text-xs ${i === 0 ? 'text-foreground font-medium' : 'text-foreground/70'}`}>
+                          {match.paletteName}
+                        </span>
+                        <span className="text-[12px] font-mono text-muted-foreground ml-2 flex-shrink-0">
+                          {match.confidence}%
+                        </span>
+                      </div>
+                      <div className="h-[3px] bg-border">
+                        <div
+                          className="h-[3px] bg-foreground transition-all"
+                          style={{ width: `${match.confidence}%`, opacity: i === 0 ? 1 : 0.35 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Season description */}
+            <div className="px-5 py-4 border-b border-border">
+              <p className="text-[12px] tracking-[0.2em] uppercase text-muted-foreground mb-1.5">About {topMatch.paletteName}</p>
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                {getSubseasonDescription(topMatch.paletteName)}
+              </p>
+            </div>
+
+            {/* Same-season color strip */}
+            {seasonPalette && (
+              <div className="px-5 pt-4 pb-4">
+                <p className="text-[12px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
+                  More {topMatch.paletteName} colors
+                </p>
+                <div className="flex gap-1 overflow-x-auto pb-1">
+                  {seasonPalette.colors.map((c, i) => (
+                    <div
+                      key={i}
+                      className="w-8 h-8 flex-shrink-0 border border-border/30"
+                      style={{ backgroundColor: c }}
+                      title={c}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Scan again */}
+            <div className="px-5 pt-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}>
+              <button
+                onClick={onReset}
+                className="w-full flex items-center justify-center gap-2 py-4 border border-border text-[13px] tracking-[0.2em] uppercase text-foreground hover:bg-secondary transition-colors"
+              >
+                <ScanLine className="w-4 h-4" />
+                Scan another garment
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
