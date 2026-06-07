@@ -71,9 +71,15 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
 function getColorName(r: number, g: number, b: number): string {
   const [h, s, l] = rgbToHsl(r, g, b)
 
+  // Near-whites — very high lightness reads as white/cream regardless of hue tint
+  if (l > 0.98) return 'White'
+  if (l > 0.94) {
+    if (h >= 20 && h <= 70) return 'Cream'
+    return 'Off-White'
+  }
+
   // Neutrals — low saturation
   if (s < 0.08) {
-    if (l > 0.95) return 'White'
     if (l > 0.88) return 'Off-White'
     if (l > 0.78) return 'Silver'
     if (l > 0.62) return 'Light Grey'
@@ -95,7 +101,7 @@ function getColorName(r: number, g: number, b: number): string {
   }
 
   // Browns (medium saturation)
-  if (s >= 0.25 && s < 0.55 && h >= 15 && h <= 50) {
+  if (s >= 0.25 && s < 0.55 && h >= 15 && h <= 40) {
     if (l > 0.70) return 'Peach'
     if (l > 0.55) return 'Apricot'
     if (l > 0.40) return 'Caramel'
@@ -123,8 +129,8 @@ function getColorName(r: number, g: number, b: number): string {
     return 'Dark Rust'
   }
 
-  // Orange (30–50)
-  if (h < 50) {
+  // Orange (30–40) — pure orange territory
+  if (h < 40) {
     if (l > 0.78) return 'Peach'
     if (l > 0.62) return 'Light Peach'
     if (s < 0.4) return l > 0.50 ? 'Warm Beige' : 'Taupe'
@@ -133,37 +139,46 @@ function getColorName(r: number, g: number, b: number): string {
     return 'Sienna'
   }
 
-  // Yellow-Orange / Amber (50–65)
+  // Amber / Golden (40–65) — warm gold territory, not orange
   if (h < 65) {
-    // Low-saturation warm tones in this range are khaki/olive, not amber/mustard
+    // Low-saturation tones here are khaki/olive
     if (s < 0.30) {
       if (l > 0.65) return 'Khaki'
       if (l > 0.45) return 'Dark Khaki'
       return 'Olive'
     }
-    if (l > 0.70) return 'Butter Yellow'
+    if (l > 0.75) return 'Butter Yellow'
     if (l > 0.50) return 'Amber'
     if (l > 0.35) return 'Mustard'
     return 'Dark Mustard'
   }
 
-  // Yellow (65–80)
-  if (h < 80) {
+  // Yellow (65–78)
+  if (h < 78) {
     // Low-saturation yellows are khaki/olive, not true yellows
     if (s < 0.35) {
       if (l > 0.65) return 'Khaki'
       if (l > 0.45) return 'Dark Khaki'
       return 'Olive'
     }
+    // High-saturation at h > 72 is perceptually yellow-green, not golden yellow
+    if (s > 0.55 && h > 72) return l > 0.55 ? 'Chartreuse' : l > 0.38 ? 'Yellow-Green' : 'Olive Green'
     if (l > 0.75) return 'Pale Yellow'
     if (l > 0.55) return 'Yellow'
     if (l > 0.40) return 'Golden Yellow'
     return 'Ochre'
   }
 
-  // Yellow-Green (80–110)
+  // Yellow-Green (78–110)
   if (h < 110) {
     if (s < 0.25) return l > 0.55 ? 'Khaki' : l > 0.38 ? 'Olive Green' : 'Dark Olive'
+    // Vivid bright greens — high saturation prevents olive naming
+    if (s > 0.55) {
+      if (l > 0.60) return 'Lime'
+      if (l > 0.45) return 'Chartreuse'
+      if (l > 0.30) return 'Vivid Green'
+      return 'Dark Green'
+    }
     if (l > 0.75) return 'Lime'
     if (l > 0.55) return 'Chartreuse'
     if (l > 0.38) return 'Olive Green'
@@ -199,16 +214,18 @@ function getColorName(r: number, g: number, b: number): string {
     return 'Midnight Blue'
   }
 
-  // Blue-Purple / Indigo (250–275)
+  // Blue-Purple / Violet (250–275)
   if (h < 275) {
+    // Vivid high-saturation in this range is violet/purple, not periwinkle
+    if (s > 0.60) return l > 0.60 ? 'Lavender' : l > 0.40 ? 'Violet' : l > 0.25 ? 'Indigo' : 'Deep Indigo'
     if (l > 0.70) return 'Lavender'
     if (l > 0.50) return 'Periwinkle'
     if (l > 0.32) return 'Indigo'
     return 'Deep Indigo'
   }
 
-  // Purple (275–320)
-  if (h < 320) {
+  // Purple (275–315)
+  if (h < 315) {
     if (l > 0.75) return 'Lilac'
     if (l > 0.60) return 'Lavender'
     if (s < 0.30) return l > 0.45 ? 'Dusty Purple' : 'Muted Violet'
@@ -217,7 +234,14 @@ function getColorName(r: number, g: number, b: number): string {
     return 'Deep Plum'
   }
 
-  // Pink-Purple / Magenta (320–345)
+  // Fuchsia / Magenta / Hot Pink (315–345)
+  if (s > 0.70) {
+    // Vivid high-saturation: fuchsia/magenta territory
+    if (l > 0.62) return 'Fuchsia Pink'
+    if (l > 0.40) return 'Fuchsia'
+    if (l > 0.25) return 'Magenta'
+    return 'Deep Magenta'
+  }
   if (l > 0.78) return 'Blush Pink'
   if (l > 0.62) return 'Pink'
   if (s < 0.35) return l > 0.50 ? 'Dusty Mauve' : 'Mauve'
