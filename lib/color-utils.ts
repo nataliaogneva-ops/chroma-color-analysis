@@ -401,3 +401,28 @@ export function rgbToHex(r: number, g: number, b: number): string {
     return hex.length === 1 ? '0' + hex : hex
   }).join('').toUpperCase()
 }
+
+export interface SwatchInfo {
+  hex: string
+  name: string
+  /** Delta-E (CIE76) distance vs the scanned color — lower = closer match */
+  deltaE: number
+  /** Human-readable proximity label */
+  proximity: 'Exact match' | 'Very close' | 'Close' | 'Similar' | 'Different'
+}
+
+/**
+ * Given a palette swatch hex and the scanned garment hex, return its
+ * color name and perceptual distance so the UI can show an inline detail card.
+ */
+export function describeSwatchVsScanned(swatchHex: string, scannedHex: string): SwatchInfo {
+  const [r, g, b] = hexToRgb(swatchHex)
+  const name = getColorName(r, g, b)
+  const de = deltaE(rgbToLab(...hexToRgb(swatchHex)), rgbToLab(...hexToRgb(scannedHex)))
+  const proximity =
+    de < 3  ? 'Exact match' :
+    de < 8  ? 'Very close'  :
+    de < 16 ? 'Close'       :
+    de < 28 ? 'Similar'     : 'Different'
+  return { hex: swatchHex, name, deltaE: Math.round(de), proximity }
+}

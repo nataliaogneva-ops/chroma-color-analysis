@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import Image from "next/image"
 import { ChevronLeft, Copy, Check, Share2, ScanLine } from "lucide-react"
-import { findTopMatches, rgbToHex, extractDominantColor, type ColorMatch } from "@/lib/color-utils"
+import { findTopMatches, rgbToHex, extractDominantColor, describeSwatchVsScanned, type ColorMatch, type SwatchInfo } from "@/lib/color-utils"
 import { getSubseasonDescription, getPaletteByName } from "@/lib/seasonal-palettes"
 import { getSegmentationMask, filterPixelsByMask } from "@/lib/segmentation"
 
@@ -37,6 +37,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
   const [imageLoaded, setImageLoaded] = useState(false)
   const [hexCopied, setHexCopied] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [selectedSwatch, setSelectedSwatch] = useState<SwatchInfo | null>(null)
   const [shareSupported] = useState(() => typeof navigator !== "undefined" && !!navigator.share)
   const imageDataRef = useRef<{ width: number; height: number; ctx: CanvasRenderingContext2D } | null>(null)
   // Segmentation mask — populated async after image loads; null = not ready yet (fall back to unmasked)
@@ -147,6 +148,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     if (!coords) return
     e.currentTarget.setPointerCapture(e.pointerId)
     setIsDragging(true)
+    setSelectedSwatch(null)
     // Immediate sample on first touch so there's instant feedback
     const matches = sampleAt(coords.x, coords.y)
     setSample(prev => prev ? { ...prev, x: coords.x, y: coords.y, matches } : null)
@@ -340,15 +342,53 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                   More {topMatch.paletteName} colors
                 </p>
                 <div className="flex gap-1 overflow-x-auto pb-1">
-                  {seasonPalette.colors.map((c, i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 flex-shrink-0 border border-border/30"
-                      style={{ backgroundColor: c }}
-                      title={c}
-                    />
-                  ))}
+                  {seasonPalette.colors.map((c, i) => {
+                    const isSelected = selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
+                    return (
+                      <button
+                        key={i}
+                        onClick={() =>
+                          setSelectedSwatch(prev =>
+                            prev?.hex.toUpperCase() === c.toUpperCase()
+                              ? null
+                              : describeSwatchVsScanned(c, topMatch.hex)
+                          )
+                        }
+                        className={`w-8 h-8 flex-shrink-0 border transition-transform duration-100 focus:outline-none ${
+                          isSelected
+                            ? 'border-foreground scale-110 shadow-[0_0_0_1.5px_hsl(var(--foreground))]'
+                            : 'border-border/30'
+                        }`}
+                        style={{ backgroundColor: c }}
+                        aria-label={c}
+                      />
+                    )
+                  })}
                 </div>
+
+                {/* Swatch detail card — appears below the strip on tap */}
+                {selectedSwatch && (
+                  <div className="mt-3 flex items-center gap-3 p-3 border border-border bg-secondary/40">
+                    <div
+                      className="w-10 h-10 flex-shrink-0 border border-border/40"
+                      style={{ backgroundColor: selectedSwatch.hex }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-serif text-base leading-tight">{selectedSwatch.name}</p>
+                      <p className="text-[12px] font-mono text-muted-foreground mt-0.5">{selectedSwatch.hex.toUpperCase()}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className={`text-[12px] font-medium ${
+                        selectedSwatch.proximity === 'Exact match' ? 'text-emerald-500' :
+                        selectedSwatch.proximity === 'Very close'  ? 'text-emerald-400' :
+                        selectedSwatch.proximity === 'Close'       ? 'text-amber-400'   :
+                        selectedSwatch.proximity === 'Similar'     ? 'text-orange-400'  :
+                        'text-muted-foreground'
+                      }`}>{selectedSwatch.proximity}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">ΔE {selectedSwatch.deltaE}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
