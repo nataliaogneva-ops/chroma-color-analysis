@@ -337,11 +337,13 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
 
             {/* Same-season color strip */}
             {seasonPalette && (
-              <div className="px-5 pt-4 pb-4">
-                <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
+              <div className="px-5 pt-6 pb-6">
+                <p className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
                   More {topMatch.paletteName} colors
                 </p>
-                <div className="flex gap-1 overflow-x-auto pb-1">
+                {/* py/px-[3px] + negative margin gives the outer shadow ring room to render
+                    without being clipped by overflow-x-auto */}
+                <div className="flex gap-1.5 overflow-x-auto py-[3px] -my-[3px] px-[3px] -mx-[3px]">
                   {seasonPalette.colors.map((c, i) => {
                     const isSelected = selectedSwatch?.hex.toUpperCase() === c.toUpperCase()
                     return (
@@ -354,7 +356,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                               : describeSwatchVsScanned(c, topMatch.hex)
                           )
                         }
-                        className={`w-8 h-8 flex-shrink-0 focus:outline-none transition-shadow duration-100 ${
+                        className={`w-11 h-11 flex-shrink-0 focus:outline-none transition-shadow duration-100 ${
                           isSelected
                             ? 'shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95),0_0_0_2px_rgba(0,0,0,0.9)] border-0'
                             : 'border border-border/30'
