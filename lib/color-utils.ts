@@ -135,6 +135,12 @@ function getColorName(r: number, g: number, b: number): string {
 
   // Yellow-Orange / Amber (50–65)
   if (h < 65) {
+    // Low-saturation warm tones in this range are khaki/olive, not amber/mustard
+    if (s < 0.30) {
+      if (l > 0.65) return 'Khaki'
+      if (l > 0.45) return 'Dark Khaki'
+      return 'Olive'
+    }
     if (l > 0.70) return 'Butter Yellow'
     if (l > 0.50) return 'Amber'
     if (l > 0.35) return 'Mustard'
@@ -143,6 +149,12 @@ function getColorName(r: number, g: number, b: number): string {
 
   // Yellow (65–80)
   if (h < 80) {
+    // Low-saturation yellows are khaki/olive, not true yellows
+    if (s < 0.35) {
+      if (l > 0.65) return 'Khaki'
+      if (l > 0.45) return 'Dark Khaki'
+      return 'Olive'
+    }
     if (l > 0.75) return 'Pale Yellow'
     if (l > 0.55) return 'Yellow'
     if (l > 0.40) return 'Golden Yellow'
@@ -151,6 +163,7 @@ function getColorName(r: number, g: number, b: number): string {
 
   // Yellow-Green (80–110)
   if (h < 110) {
+    if (s < 0.25) return l > 0.55 ? 'Khaki' : l > 0.38 ? 'Olive Green' : 'Dark Olive'
     if (l > 0.75) return 'Lime'
     if (l > 0.55) return 'Chartreuse'
     if (l > 0.38) return 'Olive Green'
