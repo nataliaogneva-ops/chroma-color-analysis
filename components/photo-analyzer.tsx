@@ -354,10 +354,10 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                               : describeSwatchVsScanned(c, topMatch.hex)
                           )
                         }
-                        className={`w-8 h-8 flex-shrink-0 border transition-transform duration-100 focus:outline-none ${
+                        className={`w-8 h-8 flex-shrink-0 focus:outline-none transition-shadow duration-100 ${
                           isSelected
-                            ? 'border-foreground scale-110 shadow-[0_0_0_1.5px_hsl(var(--foreground))]'
-                            : 'border-border/30'
+                            ? 'shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95),0_0_0_2px_rgba(0,0,0,0.9)] border-0'
+                            : 'border border-border/30'
                         }`}
                         style={{ backgroundColor: c }}
                         aria-label={c}
@@ -385,7 +385,6 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                         selectedSwatch.proximity === 'Similar'     ? 'text-orange-400'  :
                         'text-muted-foreground'
                       }`}>{selectedSwatch.proximity}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">ΔE {selectedSwatch.deltaE}</p>
                     </div>
                   </div>
                 )}
