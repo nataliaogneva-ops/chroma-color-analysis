@@ -87,7 +87,22 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
   const streamRef = useRef<MediaStream | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const animationRef = useRef<number | null>(null)
-  const castRef = useRef<[number, number, number]>([1, 1, 1])
+  const CAST_KEY = "chroma_cast"
+  const savedCast = (): [number, number, number] => {
+    try {
+      const raw = localStorage.getItem(CAST_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length === 3) return parsed as [number, number, number]
+      }
+    } catch {}
+    return [1, 1, 1]
+  }
+  const saveCast = (cast: [number, number, number]) => {
+    try { localStorage.setItem(CAST_KEY, JSON.stringify(cast)) } catch {}
+  }
+
+  const castRef = useRef<[number, number, number]>(savedCast())
   const goodFramesRef = useRef(0)
   const pendingCastRef = useRef<[number, number, number]>([1, 1, 1])
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -134,7 +149,7 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
     }
     const cast: [number, number, number] = [rA / FRAMES, gA / FRAMES, bA / FRAMES]
     if (castConfidence(cast) >= 0.80) {
-      castRef.current = cast
+      castRef.current = cast; saveCast(cast)
       setMode("streaming")
     } else {
       setMode("mixedLightModal")
@@ -205,7 +220,7 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
     setFillProgress(Math.min(100, Math.round((goodFramesRef.current / LOCK_FRAMES_NEEDED) * 100)))
 
     if (goodFramesRef.current >= LOCK_FRAMES_NEEDED) {
-      castRef.current = pendingCastRef.current
+      castRef.current = pendingCastRef.current; saveCast(pendingCastRef.current)
       cancelAnim()
       setMode("whiteRefSuccess")
       if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(200)
@@ -230,13 +245,14 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
     const radiusPx = Math.round(TARGET_RADIUS_CSS * scaleX)
     const { cast } = sampleTargetCircle(ctx, canvas.width, canvas.height, radiusPx)
     const frames = goodFramesRef.current
-    castRef.current = frames > 0
+    const forcedCast: [number, number, number] = frames > 0
       ? [
           (pendingCastRef.current[0] * frames + cast[0]) / (frames + 1),
           (pendingCastRef.current[1] * frames + cast[1]) / (frames + 1),
           (pendingCastRef.current[2] * frames + cast[2]) / (frames + 1),
         ]
       : cast
+    castRef.current = forcedCast; saveCast(forcedCast)
     cancelAnim()
     setMode("whiteRefSuccess")
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(200)
@@ -249,7 +265,8 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
   const startCamera = useCallback(async () => {
     setMode("requesting")
     setIsVideoReady(false)
-    castRef.current = [1, 1, 1]
+    // Restore saved cast — castRef is already initialised from localStorage on mount,
+    // but re-read here in case the user recalibrated in a previous session this run.
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
@@ -451,7 +468,7 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
               <span className="text-xs tracking-[0.2em] uppercase font-medium">Calibrate Camera</span>
               <span className="text-xs opacity-60 leading-relaxed">Point at a white surface to correct for lighting</span>
             </button>
-            <button onClick={() => { castRef.current = [1, 1, 1]; setMode("streaming") }}
+            <button onClick={() => { setMode("streaming") }}
               className="w-full py-3 text-center text-xs tracking-[0.15em] uppercase text-muted-foreground border border-border active:opacity-60 transition-opacity">
               Try Scanning Anyway
             </button>
