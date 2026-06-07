@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ChevronLeft, Copy, Check, Share2, ScanLine } from "lucide-react"
 import { findTopMatches, rgbToHex, extractDominantColor, type ColorMatch } from "@/lib/color-utils"
 import { getSubseasonDescription, getPaletteByName } from "@/lib/seasonal-palettes"
+import { getSegmentationMask, filterPixelsByMask } from "@/lib/segmentation"
 
 interface SamplePoint {
   id: number
@@ -37,6 +38,8 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
   const [hexCopied, setHexCopied] = useState(false)
   const [shareSupported] = useState(() => typeof navigator !== "undefined" && !!navigator.share)
   const imageDataRef = useRef<{ width: number; height: number; ctx: CanvasRenderingContext2D } | null>(null)
+  // Segmentation mask — populated async after image loads; null = not ready yet (fall back to unmasked)
+  const maskRef = useRef<Float32Array | null>(null)
 
   // Convert container coords (0–1) → image coords (0–1), accounting for object-contain letterboxing.
   // Returns null when the point falls in the letterbox (outside the actual image).
@@ -68,17 +71,14 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
     const radius = 28
     const x0 = Math.max(0, px - radius), y0 = Math.max(0, py - radius)
     const w = Math.min(width - x0, radius * 2 + 1), h = Math.min(height - y0, radius * 2 + 1)
-    const data = ctx.getImageData(x0, y0, w, h).data
-    const count = w * h
-    // Apply cast correction per-pixel before clustering so K-Means works on corrected colors
-    const rawPixels: Array<[number, number, number]> = []
-    for (let i = 0; i < count; i++) {
-      const [pr, pg, pb] = applyCorrection(data[i*4], data[i*4+1], data[i*4+2], castVector)
-      rawPixels.push([pr, pg, pb])
-    }
-    const [cr, cg, cb] = extractDominantColor(rawPixels)
+    const imageData = ctx.getImageData(x0, y0, w, h)
+
+    // Filter pixels through segmentation mask (excludes background), then cast-correct
+    const masked = filterPixelsByMask(imageData.data, maskRef.current, x0, y0, w, h, width)
+    const corrected = masked.map(([r, g, b]) => applyCorrection(r, g, b, castVector))
+    const [cr, cg, cb] = extractDominantColor(corrected)
     return findTopMatches(rgbToHex(cr, cg, cb), 3)
-  }, [toImageCoords])
+  }, [toImageCoords, castVector])
 
   // Load image onto canvas, then auto-place sample at center
   useEffect(() => {
@@ -97,6 +97,19 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
       setTimeout(() => {
         setSample({ id: 0, x: 0.5, y: 0.5, matches: sampleAt(0.5, 0.5) })
       }, 80)
+
+      // Run segmentation in background — updates maskRef when ready.
+      // Any subsequent tap re-samples automatically picking up the mask.
+      getSegmentationMask(canvas).then(mask => {
+        if (mask) {
+          maskRef.current = mask
+          // Re-sample with the mask now available
+          setSample(prev => prev
+            ? { ...prev, matches: sampleAt(prev.x, prev.y) }
+            : prev
+          )
+        }
+      })
     }
     img.src = imageUrl
   }, [imageUrl, sampleAt])

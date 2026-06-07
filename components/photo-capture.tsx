@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { X, ImageIcon, RefreshCw } from "lucide-react"
 import { findBestMatch, rgbToHex, extractDominantColor } from "@/lib/color-utils"
+import { preloadSegmenter } from "@/lib/segmentation"
 
 interface PhotoCaptureProps {
   onPhotoCapture: (imageUrl: string, castVector: [number, number, number]) => void
@@ -277,6 +278,11 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
       video.play().then(() => setIsVideoReady(true)).catch(() => stopCamera())
     }
   }, [mode, isVideoReady, stopCamera])
+
+  // Preload segmentation model as soon as camera is live — so it's warm by capture time
+  useEffect(() => {
+    if (isVideoReady) preloadSegmenter()
+  }, [isVideoReady])
 
   // Kick off auto-calibration once video ready
   useEffect(() => {
