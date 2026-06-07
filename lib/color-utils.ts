@@ -378,8 +378,8 @@ export function findTopMatches(hex: string, n = 3): ColorMatch[] {
     name,
     paletteName: palette.name,
     season: palette.season,
-    // DeltaE ~1.8 scaling: 0→100%, 10→82%, 20→64%, 30→46%
-    confidence: Math.max(0, Math.round(100 - distance * 1.8)),
+    // Match % = 100 − (ΔE / 10 × 100), clamped 0–100. ΔE≥10 → 0%, ΔE=0 → 100%
+    confidence: Math.max(0, Math.round(100 - (distance / 10) * 100)),
   }))
 }
 

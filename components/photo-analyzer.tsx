@@ -331,12 +331,18 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                           {match.confidence}%
                         </span>
                       </div>
-                      <div className="h-[3px] bg-border">
-                        <div
-                          className="h-[3px] bg-foreground transition-all"
-                          style={{ width: `${match.confidence}%`, opacity: i === 0 ? 1 : 0.35 }}
-                        />
-                      </div>
+                      {(() => {
+                        const barH = i === 0 ? 'h-[4px]' : i === 1 ? 'h-[3px]' : 'h-[2px]'
+                        const opacity = i === 0 ? 1 : i === 1 ? 0.5 : 0.3
+                        return (
+                          <div className={`${barH} bg-border`}>
+                            <div
+                              className={`${barH} bg-foreground transition-all duration-500`}
+                              style={{ width: `${match.confidence}%`, opacity }}
+                            />
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
                 ))}
