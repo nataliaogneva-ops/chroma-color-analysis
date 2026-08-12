@@ -17,10 +17,10 @@ export const seasonalPalettes: SeasonalPalette[] = [
   {
         name: 'Light Spring',
         season: 'spring',
-        previewColors: ['#FFAA99', '#EAA27F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#8B93F4'],
+        previewColors: ['#FFAA99', '#EA827F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#8B93F4'],
         colors: [
                 // Signature
-          '#FFAA99', '#EAA27F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#8B93F4',
+          '#FFAA99', '#EA827F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#8B93F4',
                 // Great
                 '#F5D07D', '#C98BDC', '#F89B72', '#F2716C', '#F48BA8', '#AADA76',
                 '#B6CD7E', '#7DDBCD', '#7DD2B9', '#76CCE9', '#14B6C8', '#EBADE8',
@@ -238,8 +238,8 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 // Signature
           '#004245', '#004363', '#0C0F66', '#341259', '#59003C', '#5A0023',
                 // Great
-                '#5D0125', '#8F0D3B', '#003432', '#061C3D', '#0F274C', '#79005B',
-                '#3B104B', '#890958', '#890919', '#790A21', '#12004D', '#9F2144',
+                '#5D0125', '#8F0D3B',  '#004245','#003432', '#061C3D', '#0F274C', '#79005B',
+                '#3B104B', '#890958', '#890919', '#790A21', '#12004D',
                 // Neutrals
                 '#000000', '#FFFFFF', '#737373', '#242424', '#061C3D', '#3B0028',
                 '#0D3A5D', '#2E2321', '#351F16', '#3D3023', '#530000', '#172422',
