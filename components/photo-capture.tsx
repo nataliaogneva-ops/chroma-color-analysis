@@ -132,6 +132,26 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
       })
       streamRef.current = stream
+
+      // Lock white-balance and exposure so color readings stay consistent
+      // frame-to-frame instead of drifting with the browser's auto-correction.
+      // Only Chromium on Android exposes these controls; every other
+      // browser/OS silently skips this block, which is fine.
+      const track = stream.getVideoTracks()[0]
+      const caps = track && typeof (track as MediaStreamTrack & { getCapabilities?: () => MediaTrackCapabilities }).getCapabilities === 'function'
+        ? (track as MediaStreamTrack & { getCapabilities: () => MediaTrackCapabilities }).getCapabilities()
+        : ({} as MediaTrackCapabilities & { whiteBalanceMode?: string[]; exposureMode?: string[] })
+      const advanced: MediaTrackConstraintSet[] = []
+      if ((caps as { whiteBalanceMode?: string[] }).whiteBalanceMode?.includes('single-shot')) {
+        advanced.push({ whiteBalanceMode: 'single-shot' } as MediaTrackConstraintSet & { whiteBalanceMode: string })
+      }
+      if ((caps as { exposureMode?: string[] }).exposureMode?.includes('single-shot')) {
+        advanced.push({ exposureMode: 'single-shot' } as MediaTrackConstraintSet & { exposureMode: string })
+      }
+      if (advanced.length && track) {
+        try { await track.applyConstraints({ advanced }) } catch { /* best-effort */ }
+      }
+
       setMode("streaming")
     } catch {
       setMode("denied")
