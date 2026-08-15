@@ -396,14 +396,32 @@ export function extractDominantColor(
 }
 
 // Score the input color against every palette, return top N ranked by closest match.
-// Two-factor palette scoring:
+// Two-factor raw scoring (unchanged — used purely as a relative ordering signal):
 //   1. Proximity score  — power-curve on nearest-color ΔE (threshold 50).
 //      Real palette ΔE values range 1–25 for valid matches, so a threshold of 10
 //      was far too tight (supporting seasons consistently scored 0%).
 //   2. Coverage score   — fraction of palette colors within ΔE≤25 of the scan.
 //      Rewards palettes that own the scanned colour territory, not just those that
 //      happen to contain one nearby token.
-//   Combined 70 / 30 weighting; top-3 results get a minimum floor of 5%.
+//   Combined 70 / 30 weighting.
+//
+// Confidence rescaling (UX requirement — the app must always look confident):
+//   - The raw scores above are only used to RANK palettes and to derive a
+//     proportional confidence. The winning palette's raw score (0–1) is linearly
+//     rescaled into [80, 100]: winnerConf = clamp(round(80 + 20 * rawTop), 80, 100).
+//     This guarantees the top match always reads as 80–100%, even for garbage input
+//     that is far from every palette (rawTop ≈ 0 still yields 80%).
+//   - Every other returned palette is ranked strictly below the previous one: each
+//     gets a confidence proportional to its raw-score ratio against the winner,
+//     scaled into the open range below the previous palette's confidence (never
+//     touching or exceeding it), floored at 1%.
+//   - Ties in raw score (to full precision) are broken deterministically by (a)
+//     smaller nearest-neighbor ΔE, then (b) alphabetical palette name — so ordering
+//     (and therefore the confidence assigned) never depends on iteration order.
+//   - A final pass enforces strict monotonic decrease across the sorted results as
+//     a safety net, in case of any residual rounding collision.
+//   Net effect: every returned match is a distinct integer in [1, 100], and the
+//   top match is always in [80, 100].
 export function findTopMatches(hex: string, n = 3): ColorMatch[] {
   const [r, g, b] = hexToRgb(hex)
   const inputLab = rgbToLab(r, g, b)
@@ -435,15 +453,58 @@ export function findTopMatches(hex: string, n = 3): ColorMatch[] {
     paletteScores.push({ palette, score, distance: bestDist })
   }
 
-  paletteScores.sort((a, b) => b.score - a.score)
+  // Deterministic ordering: raw score desc, then nearest-neighbor ΔE asc,
+  // then palette name asc — so full-precision ties never depend on array order.
+  paletteScores.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    if (a.distance !== b.distance) return a.distance - b.distance
+    return a.palette.name.localeCompare(b.palette.name)
+  })
 
-  return paletteScores.slice(0, n).map(({ palette, score, distance }) => ({
+  const top = paletteScores.slice(0, n)
+  if (top.length === 0) return []
+
+  const winnerRaw = top[0].score
+  const winnerConf = Math.min(100, Math.max(80, Math.round(80 + 20 * winnerRaw)))
+
+  const confidences: number[] = new Array(top.length)
+  confidences[0] = winnerConf
+
+  // Reserve [1, winnerConf - 1] for every non-winning match and split it into one
+  // fixed, non-overlapping slot per rank (highest rank gets the highest slot). The
+  // slot boundaries alone guarantee strict monotonic decrease; each palette's raw
+  // score ratio just picks where inside its own slot it lands, so a near-zero ratio
+  // can never collide with the palette ranked below it.
+  const numOthers = top.length - 1
+  if (numOthers > 0) {
+    const availableRange = Math.max(numOthers, winnerConf - 1)  // ensure >=1 slot each
+    const slotSize = Math.max(1, Math.floor(availableRange / numOthers))
+
+    let slotTop = winnerConf - 1
+    for (let i = 1; i < top.length; i++) {
+      const ratio = winnerRaw > 0 ? top[i].score / winnerRaw : 0
+      const isLast = i === top.length - 1
+      const slotBottom = isLast ? 1 : Math.max(1, slotTop - slotSize + 1)
+      let conf = Math.round(slotBottom + ratio * (slotTop - slotBottom))
+      conf = Math.min(slotTop, Math.max(slotBottom, conf))
+      confidences[i] = conf
+      slotTop = slotBottom - 1
+    }
+  }
+
+  // Safety net: enforce strict monotonic decrease in case of any rounding collision.
+  for (let i = 1; i < confidences.length; i++) {
+    if (confidences[i] >= confidences[i - 1]) {
+      confidences[i] = Math.max(1, confidences[i - 1] - 1)
+    }
+  }
+
+  return top.map(({ palette }, i) => ({
     hex,
     name,
     paletteName: palette.name,
     season: palette.season,
-    // Floor at 5% so supporting seasons are never shown as 0%
-    confidence: Math.max(5, Math.round(score * 100)),
+    confidence: confidences[i],
   }))
 }
 
