@@ -363,9 +363,14 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
                     <span className="text-[13px] tracking-[0.2em] uppercase text-muted-foreground">
                       About {topMatch.paletteName}
                     </span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                    />
+                    <span className="flex items-center gap-2">
+                      <span className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
+                        {isOpen ? 'Read less' : 'Read more'}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                      />
+                    </span>
                   </button>
 
                   {isOpen && (
@@ -437,19 +442,25 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
               )
             })()}
 
-            {/* Scan again */}
-            <div className="px-5 pt-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}>
-              <button
-                onClick={onReset}
-                className="w-full flex items-center justify-center gap-2 py-4 border border-border text-[13px] tracking-[0.2em] uppercase text-foreground hover:bg-secondary transition-colors"
-              >
-                <ScanLine className="w-4 h-4" />
-                Scan another garment
-              </button>
-            </div>
           </div>
         )}
 
+      </div>
+
+      {/* Floating "Scan again" — pinned outside the scroll container so it's
+          always visible while the results scroll. Subtle top shadow implies
+          elevation without a hard border. */}
+      <div
+        className="flex-shrink-0 bg-background px-5 pt-3 shadow-[0_-8px_20px_-8px_rgba(0,0,0,0.15)]"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+      >
+        <button
+          onClick={onReset}
+          className="w-full flex items-center justify-center gap-2 py-4 bg-black text-white text-[13px] tracking-[0.2em] uppercase hover:bg-neutral-800 transition-colors"
+        >
+          <ScanLine className="w-4 h-4" />
+          Scan again
+        </button>
       </div>
     </div>
   )
