@@ -43,12 +43,59 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
   const [selectedSwatchIdx, setSelectedSwatchIdx] = useState<number | null>(null)
   // Open state per season match accordion (indices 0–2)
   const [accordionsOpen, setAccordionsOpen] = useState<boolean[]>([false, false, false])
+  // Ref to the About-season accordion header — lets us scroll it into view
+  // after expansion so the newly-revealed content isn't hidden behind the
+  // floating scan bar at the bottom of the viewport.
+  const accordionRef = useRef<HTMLDivElement>(null)
+  const wasOpenRef = useRef(false)
 
   const toggleAccordion = useCallback((idx: number) => {
     setAccordionsOpen(prev => prev.map((v, i) => i === idx ? !v : v))
     setSelectedSwatch(null)
     setSelectedSwatchIdx(null)
   }, [])
+
+  // On open transition (false → true), scroll the accordion header to the top
+  // of its scroll container so the expanded panel fills the viewport below.
+  // Uses a manual rAF interpolator instead of scrollTo({behavior:'smooth'})
+  // because the latter is unreliable on nested overflow containers across
+  // browsers (silent no-op in some CDP-controlled browsers, jitter on iOS).
+  // Skipped on close (avoids jarring scroll when collapsing) and honors
+  // prefers-reduced-motion by jumping instantly.
+  useEffect(() => {
+    const isOpen = accordionsOpen[0]
+    if (isOpen && !wasOpenRef.current && accordionRef.current) {
+      const el = accordionRef.current
+      // setTimeout(0) queues after browser has laid out the newly rendered
+      // expanded panel; rAF would be preferable but is throttled/paused when
+      // the tab (or Claude's preview pane) is not fully visible.
+      const doScroll = () => {
+        const container = el.closest('.overflow-y-auto') as HTMLElement | null
+        if (!container) return
+        const targetTop = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop
+        const startTop = container.scrollTop
+        const maxScroll = container.scrollHeight - container.clientHeight
+        const endTop = Math.min(targetTop, maxScroll)
+        const delta = endTop - startTop
+        if (Math.abs(delta) < 1) return
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (prefersReduced) { container.scrollTop = endTop; return }
+        // Manual timer-based interpolator — works even when rAF is throttled.
+        const durationMs = 320
+        const stepMs = 16
+        const startTs = performance.now()
+        const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+        const tick = () => {
+          const t = Math.min(1, (performance.now() - startTs) / durationMs)
+          container.scrollTop = startTop + delta * easeOutCubic(t)
+          if (t < 1) setTimeout(tick, stepMs)
+        }
+        tick()
+      }
+      setTimeout(doScroll, 0)
+    }
+    wasOpenRef.current = isOpen
+  }, [accordionsOpen])
   const [shareSupported] = useState(() => typeof navigator !== "undefined" && !!navigator.share)
   const imageDataRef = useRef<{ width: number; height: number; ctx: CanvasRenderingContext2D } | null>(null)
   // Segmentation mask — populated async after image loads; null = not ready yet (fall back to unmasked)
@@ -355,7 +402,7 @@ export function PhotoAnalyzer({ imageUrl, castVector, onReset }: PhotoAnalyzerPr
               if (!palette) return null
               const isOpen = accordionsOpen[0]
               return (
-                <div className="border-b border-border">
+                <div ref={accordionRef} className="border-b border-border scroll-mt-2">
                   <button
                     onClick={() => toggleAccordion(0)}
                     className="w-full flex items-center justify-between px-5 py-4 focus:outline-none"
