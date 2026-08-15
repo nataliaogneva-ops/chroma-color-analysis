@@ -45,13 +45,94 @@ function rgbToLab(r: number, g: number, b: number): [number, number, number] {
   return [L, a, bVal]
 }
 
-// Calculate Delta E (CIE76) - perceptual color difference
+// Calculate Delta E CIEDE2000 — modern perceptual color difference metric.
+// Replaces CIE76 (plain Lab Euclidean distance), which is known to overstate
+// differences in blues and dark colors and understate them elsewhere. CIEDE2000
+// applies lightness/chroma/hue-dependent weighting (SL, SC, SH), a chroma-scale
+// correction on a*, and a rotation term (RT) that models hue crosstalk in the
+// blue region. Reference: Sharma, Wu, Dalal 2005.
+//
+// Because CIEDE2000 values compress relative to CIE76 (typically ~0.5–0.7x for
+// mid-range differences), the ΔE thresholds used elsewhere in this file
+// (PROXIMITY_THRESHOLD, COVERAGE_RADIUS, CONFIDENCE_THRESHOLD, swatch buckets)
+// were retuned proportionally when this swap was made.
+const KL = 1, KC = 1, KH = 1
+const POW25_7 = Math.pow(25, 7)
+const DEG = 180 / Math.PI
+const RAD = Math.PI / 180
 function deltaE(lab1: [number, number, number], lab2: [number, number, number]): number {
-  return Math.sqrt(
-    Math.pow(lab1[0] - lab2[0], 2) +
-    Math.pow(lab1[1] - lab2[1], 2) +
-    Math.pow(lab1[2] - lab2[2], 2)
-  )
+  const [L1, a1, b1] = lab1
+  const [L2, a2, b2] = lab2
+
+  const C1 = Math.sqrt(a1 * a1 + b1 * b1)
+  const C2 = Math.sqrt(a2 * a2 + b2 * b2)
+  const Cbar = (C1 + C2) / 2
+  const Cbar7 = Math.pow(Cbar, 7)
+  const G = 0.5 * (1 - Math.sqrt(Cbar7 / (Cbar7 + POW25_7)))
+
+  const a1p = (1 + G) * a1
+  const a2p = (1 + G) * a2
+  const C1p = Math.sqrt(a1p * a1p + b1 * b1)
+  const C2p = Math.sqrt(a2p * a2p + b2 * b2)
+
+  const hueDeg = (b: number, ap: number): number => {
+    if (ap === 0 && b === 0) return 0
+    const h = Math.atan2(b, ap) * DEG
+    return h < 0 ? h + 360 : h
+  }
+  const h1p = hueDeg(b1, a1p)
+  const h2p = hueDeg(b2, a2p)
+
+  const dLp = L2 - L1
+  const dCp = C2p - C1p
+
+  let dhp: number
+  if (C1p * C2p === 0) {
+    dhp = 0
+  } else {
+    const diff = h2p - h1p
+    if (Math.abs(diff) <= 180) dhp = diff
+    else if (diff > 180) dhp = diff - 360
+    else dhp = diff + 360
+  }
+  const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin((dhp / 2) * RAD)
+
+  const Lbarp = (L1 + L2) / 2
+  const Cbarp = (C1p + C2p) / 2
+
+  let hbarp: number
+  if (C1p * C2p === 0) {
+    hbarp = h1p + h2p
+  } else if (Math.abs(h1p - h2p) <= 180) {
+    hbarp = (h1p + h2p) / 2
+  } else if (h1p + h2p < 360) {
+    hbarp = (h1p + h2p + 360) / 2
+  } else {
+    hbarp = (h1p + h2p - 360) / 2
+  }
+
+  const T =
+    1 -
+    0.17 * Math.cos((hbarp - 30) * RAD) +
+    0.24 * Math.cos((2 * hbarp) * RAD) +
+    0.32 * Math.cos((3 * hbarp + 6) * RAD) -
+    0.20 * Math.cos((4 * hbarp - 63) * RAD)
+
+  const dTheta = 30 * Math.exp(-Math.pow((hbarp - 275) / 25, 2))
+  const Cbarp7 = Math.pow(Cbarp, 7)
+  const Rc = 2 * Math.sqrt(Cbarp7 / (Cbarp7 + POW25_7))
+
+  const Lbarp_50 = Lbarp - 50
+  const Sl = 1 + (0.015 * Lbarp_50 * Lbarp_50) / Math.sqrt(20 + Lbarp_50 * Lbarp_50)
+  const Sc = 1 + 0.045 * Cbarp
+  const Sh = 1 + 0.015 * Cbarp * T
+  const Rt = -Math.sin((2 * dTheta) * RAD) * Rc
+
+  const dLpSl = dLp / (KL * Sl)
+  const dCpSc = dCp / (KC * Sc)
+  const dHpSh = dHp / (KH * Sh)
+
+  return Math.sqrt(dLpSl * dLpSl + dCpSc * dCpSc + dHpSh * dHpSh + Rt * dCpSc * dHpSh)
 }
 
 
@@ -233,7 +314,7 @@ const COLOR_REFERENCE_LAB: Array<[string, [number, number, number]]> = COLOR_REF
 
 // When the nearest anchor is too far away (ΔE > CONFIDENCE_THRESHOLD), build a
 // plain-English description directly from Lab values instead of guessing wrong.
-const CONFIDENCE_THRESHOLD = 14
+const CONFIDENCE_THRESHOLD = 8
 
 function describeFromLab(L: number, a: number, b: number): string {
   const chroma = Math.sqrt(a * a + b * b)
@@ -396,21 +477,39 @@ export function extractDominantColor(
 }
 
 // Score the input color against every palette, return top N ranked by closest match.
-// Two-factor palette scoring:
+// Two-factor raw scoring (unchanged — used purely as a relative ordering signal):
 //   1. Proximity score  — power-curve on nearest-color ΔE (threshold 50).
 //      Real palette ΔE values range 1–25 for valid matches, so a threshold of 10
 //      was far too tight (supporting seasons consistently scored 0%).
 //   2. Coverage score   — fraction of palette colors within ΔE≤25 of the scan.
 //      Rewards palettes that own the scanned colour territory, not just those that
 //      happen to contain one nearby token.
-//   Combined 70 / 30 weighting; top-3 results get a minimum floor of 5%.
+//   Combined 70 / 30 weighting.
+//
+// Confidence rescaling (UX requirement — the app must always look confident):
+//   - The raw scores above are only used to RANK palettes and to derive a
+//     proportional confidence. The winning palette's raw score (0–1) is linearly
+//     rescaled into [80, 100]: winnerConf = clamp(round(80 + 20 * rawTop), 80, 100).
+//     This guarantees the top match always reads as 80–100%, even for garbage input
+//     that is far from every palette (rawTop ≈ 0 still yields 80%).
+//   - Every other returned palette is ranked strictly below the previous one: each
+//     gets a confidence proportional to its raw-score ratio against the winner,
+//     scaled into the open range below the previous palette's confidence (never
+//     touching or exceeding it), floored at 1%.
+//   - Ties in raw score (to full precision) are broken deterministically by (a)
+//     smaller nearest-neighbor ΔE, then (b) alphabetical palette name — so ordering
+//     (and therefore the confidence assigned) never depends on iteration order.
+//   - A final pass enforces strict monotonic decrease across the sorted results as
+//     a safety net, in case of any residual rounding collision.
+//   Net effect: every returned match is a distinct integer in [1, 100], and the
+//   top match is always in [80, 100].
 export function findTopMatches(hex: string, n = 3): ColorMatch[] {
   const [r, g, b] = hexToRgb(hex)
   const inputLab = rgbToLab(r, g, b)
   const name = getColorName(r, g, b)
 
-  const PROXIMITY_THRESHOLD = 50   // ΔE at which proximity score → 0
-  const COVERAGE_RADIUS    = 25    // colours inside this radius count as "present"
+  const PROXIMITY_THRESHOLD = 30   // ΔE00 at which proximity score → 0
+  const COVERAGE_RADIUS    = 15    // ΔE00 inside this radius count as "present"
   const PROXIMITY_POWER    = 2     // steeper curve near 0, gentler tail
   const W_PROXIMITY        = 0.70
   const W_COVERAGE         = 0.30
@@ -435,15 +534,58 @@ export function findTopMatches(hex: string, n = 3): ColorMatch[] {
     paletteScores.push({ palette, score, distance: bestDist })
   }
 
-  paletteScores.sort((a, b) => b.score - a.score)
+  // Deterministic ordering: raw score desc, then nearest-neighbor ΔE asc,
+  // then palette name asc — so full-precision ties never depend on array order.
+  paletteScores.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    if (a.distance !== b.distance) return a.distance - b.distance
+    return a.palette.name.localeCompare(b.palette.name)
+  })
 
-  return paletteScores.slice(0, n).map(({ palette, score, distance }) => ({
+  const top = paletteScores.slice(0, n)
+  if (top.length === 0) return []
+
+  const winnerRaw = top[0].score
+  const winnerConf = Math.min(100, Math.max(80, Math.round(80 + 20 * winnerRaw)))
+
+  const confidences: number[] = new Array(top.length)
+  confidences[0] = winnerConf
+
+  // Reserve [1, winnerConf - 1] for every non-winning match and split it into one
+  // fixed, non-overlapping slot per rank (highest rank gets the highest slot). The
+  // slot boundaries alone guarantee strict monotonic decrease; each palette's raw
+  // score ratio just picks where inside its own slot it lands, so a near-zero ratio
+  // can never collide with the palette ranked below it.
+  const numOthers = top.length - 1
+  if (numOthers > 0) {
+    const availableRange = Math.max(numOthers, winnerConf - 1)  // ensure >=1 slot each
+    const slotSize = Math.max(1, Math.floor(availableRange / numOthers))
+
+    let slotTop = winnerConf - 1
+    for (let i = 1; i < top.length; i++) {
+      const ratio = winnerRaw > 0 ? top[i].score / winnerRaw : 0
+      const isLast = i === top.length - 1
+      const slotBottom = isLast ? 1 : Math.max(1, slotTop - slotSize + 1)
+      let conf = Math.round(slotBottom + ratio * (slotTop - slotBottom))
+      conf = Math.min(slotTop, Math.max(slotBottom, conf))
+      confidences[i] = conf
+      slotTop = slotBottom - 1
+    }
+  }
+
+  // Safety net: enforce strict monotonic decrease in case of any rounding collision.
+  for (let i = 1; i < confidences.length; i++) {
+    if (confidences[i] >= confidences[i - 1]) {
+      confidences[i] = Math.max(1, confidences[i - 1] - 1)
+    }
+  }
+
+  return top.map(({ palette }, i) => ({
     hex,
     name,
     paletteName: palette.name,
     season: palette.season,
-    // Floor at 5% so supporting seasons are never shown as 0%
-    confidence: Math.max(5, Math.round(score * 100)),
+    confidence: confidences[i],
   }))
 }
 
@@ -484,10 +626,10 @@ export function describeSwatchVsScanned(swatchHex: string, scannedHex: string): 
   const name = getColorName(r, g, b)
   const de = deltaE(rgbToLab(...hexToRgb(swatchHex)), rgbToLab(...hexToRgb(scannedHex)))
   const proximity =
-    de < 3  ? 'Exact match' :
-    de < 8  ? 'Very close'  :
-    de < 16 ? 'Close'       :
-    de < 28 ? 'Similar'     : 'Different'
+    de < 1.5 ? 'Exact match' :
+    de < 3   ? 'Very close'  :
+    de < 6   ? 'Close'       :
+    de < 12  ? 'Similar'     : 'Different'
   return { hex: swatchHex, name, deltaE: Math.round(de), proximity }
 }
 
@@ -520,10 +662,10 @@ export function findBestColorPerPalette(scannedHex: string, n = 6): PaletteColor
     const [r, g, b] = hexToRgb(bestHex)
     const de = Math.round(bestDist)
     const proximity: SwatchInfo['proximity'] =
-      de < 3  ? 'Exact match' :
-      de < 8  ? 'Very close'  :
-      de < 16 ? 'Close'       :
-      de < 28 ? 'Similar'     : 'Different'
+      de < 1.5 ? 'Exact match' :
+      de < 3   ? 'Very close'  :
+      de < 6   ? 'Close'       :
+      de < 12  ? 'Similar'     : 'Different'
     return {
       swatchHex: bestHex,
       swatchName: getColorName(r, g, b),

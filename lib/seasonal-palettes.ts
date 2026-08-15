@@ -17,16 +17,16 @@ export const seasonalPalettes: SeasonalPalette[] = [
   {
         name: 'Light Spring',
         season: 'spring',
-        previewColors: ['#FFAA99', '#EA827F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#8B93F4'],
+        previewColors: ['#FFAA99', '#EA827F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#E8C5E4'],
         colors: [
                 // Signature
-          '#FFAA99', '#EA827F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#8B93F4',
+          '#FFAA99', '#EA827F', '#FFEF9A', '#DFEE8B', '#9FE8DB', '#E8C5E4',
                 // Great
                 '#F5D07D', '#C98BDC', '#F89B72', '#F2716C', '#F48BA8', '#AADA76',
                 '#B6CD7E', '#7DDBCD', '#7DD2B9', '#76CCE9', '#14B6C8', '#EBADE8',
                 // Neutrals
                 '#C49769', '#CAA867', '#E8C685', '#EECB9B', '#F4F4DE', '#C2AD7F',
-                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#205D82',
+                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#8C7355',
               ],
   },
   {
@@ -41,7 +41,7 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 '#83C44D', '#6FCB75', '#39BE92', '#39BEBF', '#65B6D9', '#E19EE9',
                 // Neutrals
                 '#C49769', '#CAA867', '#E8C685', '#EECB9B', '#F4F4DE', '#C2AD7F',
-                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#205D82',
+                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#8C7355',
               ],
   },
   {
@@ -53,10 +53,10 @@ export const seasonalPalettes: SeasonalPalette[] = [
           '#DF3118', '#FD4470', '#FFDE59', '#2AA54D', '#CE47E4', '#0473EB',
                 // Great
                 '#EF5436', '#F25F2F', '#F5832B', '#ED4F59', '#F06066', '#96BC3C',
-                '#169D27', '#23BBA8', '#1177BD', '#4452C2', '#CD2B6F', '#33A0DA',
+                '#169D27', '#23BBA8', '#FF6FCB', '#4452C2', '#CD2B6F', '#33A0DA',
                 // Neutrals
                 '#C49769', '#CAA867', '#E8C685', '#EECB9B', '#F4F4DE', '#C2AD7F',
-                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#205D82',
+                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#8C7355',
               ],
   },
   {
@@ -71,7 +71,7 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 '#5E9541', '#54BD84', '#23B99E', '#C64779', '#64B7C9', '#367639',
                 // Neutrals
                 '#C49769', '#CAA867', '#E8C685', '#EECB9B', '#F4F4DE', '#C2AD7F',
-                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#205D82',
+                '#FFF9E6', '#8B4428', '#6C2B13', '#91573B', '#6F5C40', '#8C7355',
               ],
   },
 
@@ -85,7 +85,7 @@ export const seasonalPalettes: SeasonalPalette[] = [
           '#9ED1C4', '#97C9E1', '#A9DADF', '#C0ABDB', '#EAADD2', '#FAF8CF',
                 // Great
                 '#FAD9ED', '#F0C6F8', '#889DBC', '#7DB9D8', '#C9E8F6', '#EABECF',
-                '#73DBBF', '#74BDAD', '#9A97C6', '#F7F5B8', '#C0C0E0', '#A1CEAC',
+                '#8DB8B7', '#74BDAD', '#9A97C6', '#F7F5B8', '#C0C0E0', '#A1CEAC',
                 // Neutrals
                 '#666363', '#A6A6A6', '#D9D9D9', '#49556A', '#4A4F68', '#EAEBEF',
                 '#BABCB2', '#908783', '#7A656C', '#A49E92', '#9E8990', '#525B50',
@@ -94,13 +94,13 @@ export const seasonalPalettes: SeasonalPalette[] = [
   {
         name: 'True Summer',
         season: 'summer',
-        previewColors: ['#8EB4A6', '#5487A4', '#7AA7DF', '#A09ACF', '#EB9CCA', '#CD6182'],
+        previewColors: ['#8EB4A6', '#5487A4', '#7AA7DF', '#A09ACF', '#EB9CCA', '#C1708E'],
         colors: [
                 // Signature
-          '#8EB4A6', '#5487A4', '#7AA7DF', '#A09ACF', '#EB9CCA', '#CD6182',
+          '#8EB4A6', '#5487A4', '#7AA7DF', '#A09ACF', '#EB9CCA', '#C1708E',
                 // Great
                 '#608D8F', '#73B3AF', '#3B7192', '#8198CA', '#747EB2', '#667AA9',
-                '#A29BC7', '#877AAC', '#C269AB', '#BF6391', '#F599BA', '#F9F5BB',
+                '#A29BC7', '#877AAC', '#B47FA8', '#BF6391', '#F599BA', '#F9F5BB',
                 // Neutrals
                 '#666363', '#A6A6A6', '#D9D9D9', '#49556A', '#4A4F68', '#EAEBEF',
                 '#BABCB2', '#908783', '#7A656C', '#A49E92', '#9E8990', '#525B50',
@@ -109,13 +109,13 @@ export const seasonalPalettes: SeasonalPalette[] = [
   {
         name: 'Soft Summer',
         season: 'summer',
-        previewColors: ['#728D86', '#60838A', '#6B8698', '#896F9B', '#A68196', '#CE9099'],
+        previewColors: ['#728D86', '#60838A', '#6B8698', '#896F9B', '#A68196', '#B98A92'],
         colors: [
                 // Signature
-          '#728D86', '#60838A', '#6B8698', '#896F9B', '#A68196', '#CE9099',
+          '#728D86', '#60838A', '#6B8698', '#896F9B', '#A68196', '#B98A92',
                 // Great
-                '#667266', '#97BDB9', '#E1C6CF', '#DB8CA6', '#7A4350', '#E1DDB4',
-                '#A6658C', '#4E7390', '#915D67', '#BBA1C4', '#97A8B6', '#717B9B',
+                '#667266', '#97BDB9', '#E1C6CF', '#C79AA8', '#7A4350', '#E1DDB4',
+                '#93697E', '#4E7390', '#915D67', '#BBA1C4', '#97A8B6', '#717B9B',
                 // Neutrals
                 '#666363', '#A6A6A6', '#D9D9D9', '#49556A', '#4A4F68', '#EAEBEF',
                 '#BABCB2', '#908783', '#7A656C', '#A49E92', '#9E8990', '#525B50',
@@ -129,8 +129,8 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 // Signature
           '#39A495', '#4066A8', '#436EBE', '#8B65CD', '#B6539B', '#D65899',
                 // Great
-                '#2E6499', '#3989BD', '#7D62AF', '#6E5FB2', '#DB8CCB', '#B6436D',
-                '#F7FFB9', '#368484', '#3D8196', '#A365AB', '#55A18F', '#5FADCB',
+                '#2E6499', '#3989BD', '#7D62AF', '#6E5FB2', '#DB8CCB', '#B23E6F',
+                '#2E97A0', '#368484', '#3D8196', '#A365AB', '#55A18F', '#5FADCB',
                 // Neutrals
                 '#666363', '#A6A6A6', '#D9D9D9', '#49556A', '#4A4F68', '#EAEBEF',
                 '#BABCB2', '#908783', '#7A656C', '#A49E92', '#9E8990', '#525B50',
@@ -146,7 +146,7 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 // Signature
           '#AB5151', '#BCA357', '#9C916D', '#6C6C45', '#4B7C82', '#894D63',
                 // Great
-                '#AD5B52', '#914F4F', '#C68484', '#8D566B', '#5D999C', '#547384',
+                '#AD5B52', '#914F4F', '#C68484', '#8D566B', '#5D999C', '#5E8083',
                 '#B3B480', '#4D645D', '#5C6853', '#CB927E', '#693D47', '#876F4A',
                 // Neutrals
                 '#4F2D1D', '#664736', '#846955', '#6C4C3A', '#EBE8D5', '#612010',
@@ -162,7 +162,7 @@ export const seasonalPalettes: SeasonalPalette[] = [
           '#8D3330', '#C26827', '#9B6E23', '#647229', '#4A531F', '#01827E',
                 // Great
                 '#8D361F', '#C3694E', '#CD9930', '#924741', '#611F11', '#AA532E',
-                '#6E2536', '#0F686D', '#47472D', '#57673F', '#6F5C40', '#29696D',
+                '#6E2536', '#0F686D', '#8B4E1F', '#57673F', '#6F5C40', '#29696D',
                 // Neutrals
                 '#4F2D1D', '#664736', '#846955', '#6C4C3A', '#EBE8D5', '#612010',
                 '#493C30', '#47472D', '#444A60', '#7D684E', '#664E46', '#5A5D3F',
@@ -176,8 +176,8 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 // Signature
           '#7B1111', '#72122A', '#963D0C', '#0F4012', '#17645D', '#5D1D32',
                 // Great
-                '#9C1E20', '#62151B', '#650D30', '#662243', '#23283B', '#103A4B',
-                '#124D33', '#302D1B', '#063A35', '#51571E', '#D5AA0B', '#81310F',
+                '#9C1E20', '#62151B', '#650D30', '#662243', '#4B1F12', '#1B4D3E',
+                '#124D33', '#302D1B', '#063A35', '#51571E', '#7A5C12', '#81310F',
                 // Neutrals
                 '#4F2D1D', '#664736', '#846955', '#6C4C3A', '#EBE8D5', '#612010',
                 '#493C30', '#47472D', '#444A60', '#7D684E', '#664E46', '#5A5D3F',
@@ -208,11 +208,11 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 // Signature
           '#009F7B', '#00928E', '#002ECF', '#721ACD', '#CB1989', '#CB1C36',
                 // Great
-                '#DFF915', '#FFFF1D', '#18AC5E', '#07B1AD', '#1FC0E4', '#019ABB',
+                '#4DFFC4', '#4DE8FF', '#18AC5E', '#07B1AD', '#1FC0E4', '#019ABB',
                 '#E82D57', '#0039FF', '#B147E4', '#BB1E98', '#EE2A7B', '#E7194D',
                 // Neutrals
                 '#000000', '#FFFFFF', '#737373', '#242424', '#061C3D', '#3B0028',
-                '#0D3A5D', '#2E2321', '#351F16', '#3D3023', '#530000', '#172422',
+                '#0D3A5D', '#2E2321', '#161E2E', '#1C2620', '#530000', '#172422',
               ],
   },
   {
@@ -224,10 +224,10 @@ export const seasonalPalettes: SeasonalPalette[] = [
           '#017264', '#071594', '#013076', '#48139D', '#94036A', '#A2072B',
                 // Great
                 '#BF0A33', '#C42466', '#056D69', '#022563', '#270599', '#0B3E8D',
-                '#921484', '#55228D', '#811A96', '#A20F2F', '#9D1439', '#D13A84',
+                '#921484', '#55228D', '#811A96', '#A20F2F', '#9D1439', '#A8125F',
                 // Neutrals
                 '#000000', '#FFFFFF', '#737373', '#242424', '#061C3D', '#3B0028',
-                '#0D3A5D', '#2E2321', '#351F16', '#3D3023', '#530000', '#172422',
+                '#0D3A5D', '#2E2321', '#161E2E', '#1C2620', '#530000', '#172422',
               ],
   },
   {
@@ -238,11 +238,11 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 // Signature
           '#004245', '#004363', '#0C0F66', '#341259', '#59003C', '#5A0023',
                 // Great
-                '#5D0125', '#8F0D3B',  '#004245','#003432', '#061C3D', '#0F274C', '#79005B',
+                '#5D0125', '#8F0D3B', '#3D0A5A', '#003432', '#0F3D24', '#0F274C', '#79005B',
                 '#3B104B', '#890958', '#890919', '#790A21', '#12004D',
                 // Neutrals
                 '#000000', '#FFFFFF', '#737373', '#242424', '#061C3D', '#3B0028',
-                '#0D3A5D', '#2E2321', '#351F16', '#3D3023', '#530000', '#172422',
+                '#0D3A5D', '#2E2321', '#161E2E', '#1C2620', '#530000', '#172422',
               ],
   },
   {
@@ -257,7 +257,7 @@ export const seasonalPalettes: SeasonalPalette[] = [
                 '#63307B', '#922E46', '#2B576C', '#642447', '#403D77', '#9F2144',
                 // Neutrals
                 '#000000', '#FFFFFF', '#737373', '#242424', '#061C3D', '#3B0028',
-                '#0D3A5D', '#2E2321', '#351F16', '#3D3023', '#530000', '#172422',
+                '#0D3A5D', '#2E2321', '#161E2E', '#1C2620', '#530000', '#172422',
               ],
   },
   ]
