@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { X, ImageIcon } from "lucide-react"
+import { X, Upload } from "lucide-react"
 import { findBestMatch, rgbToHex, extractDominantColor } from "@/lib/color-utils"
 import { preloadSegmenter } from "@/lib/segmentation"
 
@@ -292,7 +292,7 @@ export function PhotoCapture({ onPhotoCapture }: PhotoCaptureProps) {
       <button onClick={() => fileInputRef.current?.click()}
         className="absolute left-4 p-2 bg-white/95 backdrop-blur-sm text-black z-20 shadow-sm"
         style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }} aria-label="Choose photo">
-        <ImageIcon className="w-5 h-5" />
+        <Upload className="w-5 h-5" />
       </button>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
 
